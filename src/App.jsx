@@ -36,7 +36,7 @@ function App() {
     const [initialGameTime, setInitialGameTime] = useState(600); // Default 10 minutes (600 seconds)
     const [isRunning, setIsRunning] = useState(false);
     // showPlayerStatsModal ahora almacena un objeto { playerId, teamId }
-    const [showPlayerStatsModal, setShowPlayerStatsModal] = useState(null); 
+    const [showPlayerStatsModal, setShowPlayerStatsModal] = useState(null);
     const [teamA, setTeamA] = useState({ name: 'Local', players: [], lastAction: null }); // Añadido lastAction
     const [teamB, setTeamB] = useState({ name: 'Visitante', players: [], lastAction: null }); // Añadido lastAction
     const [history, setHistory] = useState(() => {
@@ -50,7 +50,7 @@ function App() {
         return savedRoster ? JSON.parse(savedRoster) : [];
     });
     const [showRosterSelectionModalForTeam, setShowRosterSelectionModalForTeam] = useState(null); // 'Local' o 'Visitante' para el modal de selección
-    
+
     // Estado para el AlertDialog
     const [alertMessage, setAlertMessage] = useState('');
     const [timeUpMessage, setTimeUpMessage] = useState(''); // Mensaje para cuando el tiempo se agota
@@ -552,6 +552,38 @@ function App() {
         const currentScoreA = currentTeamA.players.reduce((acc, p) => acc + p.score, 0);
         const currentScoreB = currentTeamB.players.reduce((acc, p) => acc + p.score, 0);
 
+        const [isFullScreen, setIsFullScreen] = useState(false);
+
+        const toggleFullScreen = () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().then(() => {
+                    setIsFullScreen(true);
+                }).catch(err => {
+                    setAlertMessage(`Error al intentar activar pantalla completa: ${err.message}. Asegúrate de que tu navegador lo permita.`);
+                    console.error(`Error attempting to enable full-screen: ${err.message} (${err.name})`);
+                });
+            } else {
+                document.exitFullscreen().then(() => {
+                    setIsFullScreen(false);
+                }).catch(err => {
+                    setAlertMessage(`Error al intentar salir de pantalla completa: ${err.message}.`);
+                    console.error(`Error attempting to exit full-screen: ${err.message} (${err.name})`);
+                });
+            }
+        };
+
+        // Escuchar el evento fullscreenchange para actualizar el estado si el usuario sale con ESC
+        useEffect(() => {
+            const handleFullScreenChange = () => {
+                setIsFullScreen(!!document.fullscreenElement);
+            };
+            document.addEventListener('fullscreenchange', handleFullScreenChange);
+            return () => {
+                document.removeEventListener('fullscreenchange', handleFullScreenChange);
+            };
+        }, []);
+
+
         return (
             <div className="min-h-screen text-white p-4">
                 <div className="flex flex-col items-center justify-between mb-6 sm:flex-row">
@@ -591,6 +623,17 @@ function App() {
                     </button>
                 </div>
 
+                {/* Botón de Pantalla Completa */}
+                <div className="flex justify-center mb-6">
+                    <button
+                        onClick={toggleFullScreen}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition duration-200 text-sm"
+                    >
+                        {isFullScreen ? 'Salir de Pantalla Completa' : 'Pantalla Completa'}
+                    </button>
+                </div>
+
+
                 {/* Mensaje de tiempo finalizado */}
                 {timeUpMessage && (
                     <div className="text-center text-red-400 text-2xl font-bold mb-4 animate-pulse">
@@ -605,10 +648,11 @@ function App() {
                     <h3 className="text-2xl font-bold text-red-300">{currentTeamB.name}: {currentScoreB}</h3>
                 </div>
 
-                {/* Listas de jugadores de ambos equipos */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Listas de jugadores de ambos equipos - FORZADO A HORIZONTAL SIEMPRE */}
+                {/* Se ha ajustado el contenedor para forzar el layout horizontal y permitir el scroll */}
+                <div className="flex flex-nowrap overflow-x-auto pb-4 -mx-4 px-4">
                     {/* Equipo Local */}
-                    <div className="bg-gray-800 p-4 rounded-lg shadow-lg">
+                    <div className="flex-shrink-0 min-w-[350px] bg-gray-800 p-4 rounded-lg shadow-lg mr-6">
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="text-2xl font-bold text-blue-400">{teamA.name}</h3>
                             <div className="flex space-x-2">
@@ -709,7 +753,7 @@ function App() {
                     </div>
 
                     {/* Equipo Visitante - Similar al Local */}
-                    <div className="bg-gray-800 p-4 rounded-lg shadow-lg">
+                    <div className="flex-shrink-0 min-w-[350px] bg-gray-800 p-4 rounded-lg shadow-lg">
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="text-2xl font-bold text-red-400">{teamB.name}</h3>
                             <div className="flex space-x-2">
@@ -850,124 +894,116 @@ function App() {
         // Función local para manejar la actualización de estadísticas
         const handleStatUpdate = (stat, value) => {
             updatePlayerStat(teamId, player.id, stat, value);
-            onClose(); // Cierra el modal automáticamente después de actualizar la estadística
+            onClose(); // Ahora sí se cierra automáticamente después de cada acción
         };
 
-        // Cálculos para porcentajes de tiro
+        // Cálculos para porcentajes de tiro, con manejo de división por cero
         const total2ptAttempts = player.made2pt + player.missed2pt;
         const total3ptAttempts = player.made3pt + player.missed3pt;
         const totalFTAttempts = player.madeFT + player.missedFT;
 
-        const fgPercentage = (total2ptAttempts + total3ptAttempts) > 0 ? ((player.made2pt + player.made3pt) / (total2ptAttempts + total3ptAttempts) * 100).toFixed(1) : '0.0';
-        const threePtPercentage = total3ptAttempts > 0 ? (player.made3pt / total3ptAttempts * 100).toFixed(1) : '0.0';
-        const ftPercentage = totalFTAttempts > 0 ? (player.madeFT / totalFTAttempts * 100).toFixed(1) : '0.0';
+        const fgPercentage = (total2ptAttempts + total3ptAttempts) > 0
+            ? (((player.made2pt + player.made3pt) / (total2ptAttempts + total3ptAttempts)) * 100).toFixed(1)
+            : '0.0';
+        const threePtPercentage = total3ptAttempts > 0
+            ? ((player.made3pt / total3ptAttempts) * 100).toFixed(1)
+            : '0.0';
+        const ftPercentage = totalFTAttempts > 0
+            ? ((player.madeFT / totalFTAttempts) * 100).toFixed(1)
+            : '0.0';
+
 
         return (
             <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-                <div className="bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-md border border-gray-700">
-                    <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-2xl font-bold text-white">
-                            {player.name} <span className="text-gray-400 text-lg">#{player.jersey}</span>
+                {/* Ajustado: w-full h-full para ocupar casi toda la pantalla, y max-w-screen-lg para limitar el ancho en pantallas muy grandes */}
+                <div className="bg-gray-800 p-6 rounded-lg shadow-xl w-full h-full max-w-screen-lg border border-gray-700 flex flex-col">
+                    <div className="flex justify-between items-center mb-6"> {/* Aumentado mb-4 a mb-6 */}
+                        <h3 className="text-3xl font-bold text-white"> {/* Aumentado text-2xl a text-3xl */}
+                            {player.name} <span className="text-gray-400 text-xl">#{player.jersey}</span> {/* Aumentado text-lg a text-xl */}
                         </h3>
                         <button
                             onClick={onClose}
-                            className="text-gray-400 hover:text-white text-3xl leading-none"
+                            className="text-gray-400 hover:text-white text-4xl leading-none" /* Aumentado text-3xl a text-4xl */
                         >
                             &times;
                         </button>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4 mb-4">
+                    {/* Modificado: Grid para las estadísticas, más horizontal en pantallas grandes */}
+                    {/* Aumentado gap-3 a gap-4, y p-2 a p-3 para los contenedores de estadísticas */}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 flex-grow overflow-y-auto">
                         {/* Puntos de campo */}
-                        <div className="bg-gray-700 p-3 rounded-md flex flex-col items-center">
-                            <span className="text-blue-400 text-sm">Puntos de Campo</span>
-                            <div className="flex space-x-2 mt-1">
-                                <button onClick={() => handleStatUpdate('2PM', 1)} className="bg-blue-600 hover:bg-blue-700 text-white rounded-md px-3 py-1 text-sm font-bold">+2PM</button>
-                                <button onClick={() => handleStatUpdate('2PTM', 1)} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-3 py-1 text-sm font-bold flex items-center justify-center">
+                        <div className="bg-gray-700 p-3 rounded-md flex flex-col items-center justify-center">
+                            <span className="text-blue-400 text-sm text-center mb-2">2 Puntos</span> {/* Aumentado mb-1 a mb-2 */}
+                            <div className="flex space-x-2"> {/* Aumentado space-x-1 a space-x-2 */}
+                                <button onClick={() => handleStatUpdate('2PM', 1)} className="bg-blue-600 hover:bg-blue-700 text-white rounded-md px-4 py-2 text-base font-bold">+2PM</button> {/* Aumentado px-2 py-1 text-xs a px-4 py-2 text-base */}
+                                <button onClick={() => handleStatUpdate('2PTM', 1)} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-4 py-2 text-base font-bold flex items-center justify-center">
                                     <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"></path>
                                     </svg>
-                                    2PTM
+                                    M
                                 </button>
                             </div>
                         </div>
 
                         {/* Puntos de 3 */}
-                        <div className="bg-gray-700 p-3 rounded-md flex flex-col items-center">
-                            <span className="text-green-400 text-sm">Puntos de 3</span>
-                            <div className="flex space-x-2 mt-1">
-                                <button onClick={() => handleStatUpdate('3PM', 1)} className="bg-green-600 hover:bg-green-700 text-white rounded-md px-3 py-1 text-sm font-bold">+3PM</button>
-                                <button onClick={() => handleStatUpdate('3PTM', 1)} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-3 py-1 text-sm font-bold flex items-center justify-center">
+                        <div className="bg-gray-700 p-3 rounded-md flex flex-col items-center justify-center">
+                            <span className="text-green-400 text-sm text-center mb-2">3 Puntos</span>
+                            <div className="flex space-x-2">
+                                <button onClick={() => handleStatUpdate('3PM', 1)} className="bg-green-600 hover:bg-green-700 text-white rounded-md px-4 py-2 text-base font-bold">+3PM</button>
+                                <button onClick={() => handleStatUpdate('3PTM', 1)} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-4 py-2 text-base font-bold flex items-center justify-center">
                                     <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"></path>
                                     </svg>
-                                    3PTM
+                                    M
                                 </button>
                             </div>
                         </div>
 
                         {/* Tiros Libres */}
-                        <div className="bg-gray-700 p-3 rounded-md flex flex-col items-center">
-                            <span className="text-yellow-400 text-sm">Tiros Libres</span>
-                            <div className="flex space-x-2 mt-1">
-                                <button onClick={() => handleStatUpdate('FTM', 1)} className="bg-yellow-600 hover:bg-yellow-700 text-white rounded-md px-3 py-1 text-sm font-bold">+FTM</button>
-                                <button onClick={() => handleStatUpdate('FTT', 1)} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-3 py-1 text-sm font-bold flex items-center justify-center">
+                        <div className="bg-gray-700 p-3 rounded-md flex flex-col items-center justify-center">
+                            <span className="text-yellow-400 text-sm text-center mb-2">T. Libres</span>
+                            <div className="flex space-x-2">
+                                <button onClick={() => handleStatUpdate('FTM', 1)} className="bg-yellow-600 hover:bg-yellow-700 text-white rounded-md px-4 py-2 text-base font-bold">+FTM</button>
+                                <button onClick={() => handleStatUpdate('FTT', 1)} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-4 py-2 text-base font-bold flex items-center justify-center">
                                     <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"></path>
                                     </svg>
-                                    FTT
+                                    T
                                 </button>
                             </div>
                         </div>
 
                         {/* Rebotes */}
-                        <div className="bg-gray-700 p-3 rounded-md flex flex-col items-center">
-                            <span className="text-purple-400 text-sm">Rebotes</span>
-                            <button onClick={() => handleStatUpdate('REB', 1)} className="bg-purple-600 hover:bg-purple-700 text-white rounded-md px-3 py-1 mt-1 text-sm font-bold">+REB</button>
+                        <div className="bg-gray-700 p-3 rounded-md flex flex-col items-center justify-center">
+                            <span className="text-purple-400 text-sm text-center mb-2">Rebotes</span>
+                            <button onClick={() => handleStatUpdate('REB', 1)} className="bg-purple-600 hover:bg-purple-700 text-white rounded-md px-4 py-2 text-base font-bold">+REB</button>
                         </div>
                         {/* Asistencias */}
-                        <div className="bg-gray-700 p-3 rounded-md flex flex-col items-center">
-                            <span className="text-pink-400 text-sm">Asistencias</span>
-                            <button onClick={() => handleStatUpdate('AST', 1)} className="bg-pink-600 hover:bg-pink-700 text-white rounded-md px-3 py-1 mt-1 text-sm font-bold">+AST</button>
+                        <div className="bg-gray-700 p-3 rounded-md flex flex-col items-center justify-center">
+                            <span className="text-pink-400 text-sm text-center mb-2">Asistencias</span>
+                            <button onClick={() => handleStatUpdate('AST', 1)} className="bg-pink-600 hover:bg-pink-700 text-white rounded-md px-4 py-2 text-base font-bold">+AST</button>
                         </div>
                         {/* Robos */}
-                        <div className="bg-gray-700 p-3 rounded-md flex flex-col items-center">
-                            <span className="text-teal-400 text-sm">Robos</span>
-                            <button onClick={() => handleStatUpdate('STL', 1)} className="bg-teal-600 hover:bg-teal-700 text-white rounded-md px-3 py-1 mt-1 text-sm font-bold">+STL</button>
+                        <div className="bg-gray-700 p-3 rounded-md flex flex-col items-center justify-center">
+                            <span className="text-teal-400 text-sm text-center mb-2">Robos</span>
+                            <button onClick={() => handleStatUpdate('STL', 1)} className="bg-teal-600 hover:bg-teal-700 text-white rounded-md px-4 py-2 text-base font-bold">+STL</button>
                         </div>
                         {/* Bloqueos */}
-                        <div className="bg-gray-700 p-3 rounded-md flex flex-col items-center">
-                            <span className="text-indigo-400 text-sm">Bloqueos</span>
-                            <button onClick={() => handleStatUpdate('BLK', 1)} className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-md px-3 py-1 mt-1 text-sm font-bold">+BLK</button>
+                        <div className="bg-gray-700 p-3 rounded-md flex flex-col items-center justify-center">
+                            <span className="text-indigo-400 text-sm text-center mb-2">Bloqueos</span>
+                            <button onClick={() => handleStatUpdate('BLK', 1)} className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-md px-4 py-2 text-base font-bold">+BLK</button>
                         </div>
                         {/* Pérdidas */}
-                        <div className="bg-gray-700 p-3 rounded-md flex flex-col items-center">
-                            <span className="text-orange-400 text-sm">Pérdidas</span>
-                            <button onClick={() => handleStatUpdate('TOV', 1)} className="bg-orange-600 hover:bg-orange-600 text-white rounded-md px-3 py-1 mt-1 text-sm font-bold">+TOV</button>
+                        <div className="bg-gray-700 p-3 rounded-md flex flex-col items-center justify-center">
+                            <span className="text-orange-400 text-sm text-center mb-2">Pérdidas</span>
+                            <button onClick={() => handleStatUpdate('TOV', 1)} className="bg-orange-600 hover:bg-orange-600 text-white rounded-md px-4 py-2 text-base font-bold">+TOV</button>
                         </div>
                         {/* Faltas */}
-                        <div className="bg-gray-700 p-3 rounded-md flex flex-col items-center">
-                            <span className="text-red-400 text-sm">Faltas</span>
-                            <button onClick={() => handleStatUpdate('FLT', 1)} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-3 py-1 mt-1 text-sm font-bold">+FLT</button>
+                        <div className="bg-gray-700 p-3 rounded-md flex flex-col items-center justify-center">
+                            <span className="text-red-400 text-sm text-center mb-2">Faltas</span>
+                            <button onClick={() => handleStatUpdate('FLT', 1)} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-4 py-2 text-base font-bold">+FLT</button>
                         </div>
-                    </div>
-
-                    {/* Resumen de estadísticas del jugador en el modal */}
-                    <div className="bg-gray-700 p-4 rounded-md text-sm text-gray-200">
-                        <h4 className="text-lg font-bold text-white mb-2">Resumen:</h4>
-                        <p>Puntos: <span className="font-semibold text-blue-300">{player.score}</span></p>
-                        <p>Rebotes: <span className="font-semibold text-purple-300">{player.rebounds}</span></p>
-                        <p>Asistencias: <span className="font-semibold text-pink-300">{player.assists}</span></p>
-                        <p>Robos: <span className="font-semibold text-teal-300">{player.steals}</span></p>
-                        <p>Bloqueos: <span className="font-semibold text-indigo-300">{player.blocks}</span></p>
-                        <p>Pérdidas: <span className="font-semibold text-orange-300">{player.turnovers}</span></p>
-                        <p>Faltas: <span className="font-semibold text-red-300">{player.fouls}</span></p>
-                        <p>Tiros de 2pt: <span className="font-semibold text-blue-300">{player.made2pt}/{total2ptAttempts}</span></p>
-                        <p>Tiros de 3pt: <span className="font-semibold text-green-300">{player.made3pt}/{total3ptAttempts}</span></p>
-                        <p>Tiros Libres: <span className="font-semibold text-yellow-300">{player.madeFT}/{totalFTAttempts}</span></p>
-                        <p>FG%: <span className="font-semibold text-purple-300">{fgPercentage}%</span></p>
-                        <p>3P%: <span className="font-semibold text-green-300">{threePtPercentage}%</span></p>
-                        <p>FT%: <span className="font-semibold text-yellow-300">{ftPercentage}%</span></p>
                     </div>
                 </div>
             </div>
