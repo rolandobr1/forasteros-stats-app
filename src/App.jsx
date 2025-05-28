@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Replace with your actual API key
@@ -15,8 +15,8 @@ const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 const AlertDialog = ({ message, onClose }) => {
     if (!message) return null;
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[100]">
-            <div className="bg-gray-800 p-6 rounded-lg shadow-xl max-w-sm w-full text-center border border-gray-700">
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[100] p-4"> {/* Added p-4 for mobile padding */}
+            <div className="bg-gray-800 p-6 rounded-lg shadow-xl max-w-sm w-full text-center border-2 border-yellow-500 animate-fade-in">
                 <p className="text-white text-lg mb-4">{message}</p>
                 <button
                     onClick={onClose}
@@ -29,35 +29,80 @@ const AlertDialog = ({ message, onClose }) => {
     );
 };
 
+// Componente de diálogo de confirmación
+const ConfirmDialog = ({ message, onConfirm, onCancel }) => {
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[100] p-4"> {/* Added p-4 for mobile padding */}
+            <div className="bg-gray-800 p-6 rounded-lg shadow-xl max-w-sm w-full text-center border border-gray-700">
+                <p className="text-white text-lg mb-4">{message}</p>
+                <div className="flex justify-center space-x-4">
+                    <button
+                        onClick={onConfirm}
+                        className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200"
+                    >
+                        Confirmar
+                    </button>
+                    <button
+                        onClick={onCancel}
+                        className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200"
+                    >
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// Formato del tiempo
+const formatTime = (seconds) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+};
+
 // Componente principal de la aplicación
 function App() {
     const [page, setPage] = useState('home'); // 'home', 'setupGame', 'game', 'history', 'roster'
-    const [timer, setTimer] = useState(0);
     const [initialGameTime, setInitialGameTime] = useState(600); // Default 10 minutes (600 seconds)
-    const [isRunning, setIsRunning] = useState(false);
-    // showPlayerStatsModal ahora almacena un objeto { playerId, teamId }
+    // showPlayerStatsModal ahora almacena un objeto { playerId, teamId, isLongPress }
     const [showPlayerStatsModal, setShowPlayerStatsModal] = useState(null);
-    const [teamA, setTeamA] = useState({ name: 'Local', players: [], lastAction: null }); // Añadido lastAction
-    const [teamB, setTeamB] = useState({ name: 'Visitante', players: [], lastAction: null }); // Añadido lastAction
+    // Añadido currentQuarterScore y allQuarterScores a los estados de equipo
+    // AHORA: currentQuarterFouls para faltas por cuarto
+    const [teamA, setTeamA] = useState({ name: 'Local', players: [], lastAction: null, currentQuarterScore: 0, allQuarterScores: [], currentQuarterFouls: 0 });
+    const [teamB, setTeamB] = useState({ name: 'Visitante', players: [], lastAction: null, currentQuarterScore: 0, allQuarterScores: [], currentQuarterFouls: 0 });
     const [history, setHistory] = useState(() => {
         // Cargar historial de localStorage
         const savedHistory = localStorage.getItem('forasterosHistory');
         return savedHistory ? JSON.parse(savedHistory) : [];
     });
-    const [rosterPlayers, setRosterPlayers] = useState(() => {
-        // Cargar plantilla de localStorage
-        const savedRoster = localStorage.getItem('forasterosRoster');
-        return savedRoster ? JSON.parse(savedRoster) : [];
+    // MODIFICADO: rosterPlayers ahora es 'allPlayers' y es una lista global
+    const [allPlayers, setAllPlayers] = useState(() => {
+        const savedPlayers = localStorage.getItem('forasterosAllPlayers'); // Changed key
+        return savedPlayers ? JSON.parse(savedPlayers) : [];
     });
     const [showRosterSelectionModalForTeam, setShowRosterSelectionModalForTeam] = useState(null); // 'Local' o 'Visitante' para el modal de selección
 
     // Estado para el AlertDialog
     const [alertMessage, setAlertMessage] = useState('');
-    const [timeUpMessage, setTimeUpMessage] = useState(''); // Mensaje para cuando el tiempo se agota
 
+    // ESTADO DEL TEMPORIZADOR ELEVADO A APP
+    const [timer, setTimer] = useState(600); // Inicializa con el tiempo por defecto
+    const [isRunning, setIsRunning] = useState(false);
+    const [timeUpMessage, setTimeUpMessage] = useState('');
     const intervalRef = useRef(null);
 
-    // Efecto para el temporizador
+    // Estado para el contador de cuartos
+    const [currentQuarter, setCurrentQuarter] = useState(1);
+    const [totalQuarters, setTotalQuarters] = useState(4); // Default 4 quarters
+
+    // NUEVO: Estado para el partido no terminado (para reanudar)
+    const [unfinishedGame, setUnfinishedGame] = useState(() => {
+        const savedUnfinishedGame = localStorage.getItem('forasterosUnfinishedGame');
+        return savedUnfinishedGame ? JSON.parse(savedUnfinishedGame) : null;
+    });
+
+    // Efecto para el temporizador, ahora en App
     useEffect(() => {
         if (isRunning) {
             intervalRef.current = setInterval(() => {
@@ -77,48 +122,136 @@ function App() {
         return () => clearInterval(intervalRef.current);
     }, [isRunning]);
 
+    // Función para reiniciar el juego localmente (temporizador y estado de running)
+    const localResetGame = useCallback(() => {
+        setTimer(initialGameTime); // Reinicia el timer con el initialGameTime
+        setIsRunning(false);
+        setTimeUpMessage('');
+        setCurrentQuarter(1); // Reiniciar cuartos al reiniciar el juego
+        // Resetear también los scores y faltas por cuarto
+        setTeamA(prev => ({ ...prev, currentQuarterScore: 0, allQuarterScores: [], currentQuarterFouls: 0 }));
+        setTeamB(prev => ({ ...prev, currentQuarterScore: 0, allQuarterScores: [], currentQuarterFouls: 0 }));
+    }, [initialGameTime]);
+
     // Efecto para guardar historial en localStorage
     useEffect(() => {
         localStorage.setItem('forasterosHistory', JSON.stringify(history));
     }, [history]);
 
-    // Efecto para guardar plantilla en localStorage
+    // MODIFICADO: Efecto para guardar todos los jugadores en localStorage
     useEffect(() => {
-        localStorage.setItem('forasterosRoster', JSON.stringify(rosterPlayers));
-    }, [rosterPlayers]);
+        localStorage.setItem('forasterosAllPlayers', JSON.stringify(allPlayers));
+    }, [allPlayers]);
 
-    // Formato del temporizador
-    const formatTime = (seconds) => {
-        const minutes = Math.floor(seconds / 60);
-        const remainingSeconds = seconds % 60;
-        return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-    };
+    // NUEVO: Efecto para guardar el estado del partido no terminado
+    useEffect(() => {
+        // Guardar el estado del partido no terminado cuando se descarga la página o se navega fuera
+        const saveCurrentGameState = () => {
+            if (page === 'game') { // Solo guardar si estamos en la página del partido
+                const currentGameState = {
+                    teamA: teamA,
+                    teamB: teamB,
+                    timer: timer,
+                    isRunning: isRunning,
+                    currentQuarter: currentQuarter,
+                    totalQuarters: totalQuarters,
+                    initialGameTime: initialGameTime,
+                };
+                localStorage.setItem('forasterosUnfinishedGame', JSON.stringify(currentGameState));
+            }
+        };
 
-    // Función para añadir un jugador a la plantilla (Gestión de plantilla)
-    const addRosterPlayer = (playerData) => {
-        setRosterPlayers(prev => {
-            // Asegurarse de que el número de camiseta sea único
+        window.addEventListener('beforeunload', saveCurrentGameState);
+
+        // Limpiar el estado del partido no terminado si se navega a 'history' (partido finalizado)
+        if (page === 'history' && unfinishedGame) {
+            setUnfinishedGame(null);
+            localStorage.removeItem('forasterosUnfinishedGame');
+        }
+
+        return () => {
+            window.removeEventListener('beforeunload', saveCurrentGameState);
+        };
+    }, [page, teamA, teamB, timer, isRunning, currentQuarter, totalQuarters, initialGameTime, unfinishedGame]);
+
+
+    // NUEVO: Función para navegar entre páginas, guardando el estado del partido si es necesario
+    const navigateToPage = useCallback((newPage) => {
+        if (page === 'game' && newPage !== 'history') { // Si salimos de la página del juego y no es para ir al historial (partido finalizado)
+            const currentGameState = {
+                teamA: teamA,
+                teamB: teamB,
+                timer: timer,
+                isRunning: isRunning,
+                currentQuarter: currentQuarter,
+                totalQuarters: totalQuarters,
+                initialGameTime: initialGameTime,
+            };
+            localStorage.setItem('forasterosUnfinishedGame', JSON.stringify(currentGameState));
+            setUnfinishedGame(currentGameState); // Actualizar el estado local también
+        }
+        setPage(newPage);
+    }, [page, teamA, teamB, timer, isRunning, currentQuarter, totalQuarters, initialGameTime]);
+
+
+    // NUEVO: Función para reanudar un partido
+    const handleResumeGame = useCallback(() => {
+        if (unfinishedGame) {
+            setTeamA(unfinishedGame.teamA);
+            setTeamB(unfinishedGame.teamB);
+            setTimer(unfinishedGame.timer);
+            setIsRunning(unfinishedGame.isRunning);
+            setCurrentQuarter(unfinishedGame.currentQuarter);
+            setTotalQuarters(unfinishedGame.totalQuarters);
+            setInitialGameTime(unfinishedGame.initialGameTime);
+            setPage('game');
+            setAlertMessage('Partido reanudado.');
+        } else {
+            setAlertMessage('No hay partido para reanudar.');
+        }
+    }, [unfinishedGame, setTeamA, setTeamB, setTimer, setIsRunning, setCurrentQuarter, setTotalQuarters, setInitialGameTime, setPage, setAlertMessage]);
+
+
+    // NUEVO: Función para añadir un jugador a la lista global
+    const addPlayerToGlobalRoster = useCallback((playerData) => {
+        setAllPlayers(prev => {
+            // Check for unique jersey within the global list
             const isJerseyTaken = prev.some(p => p.jersey === playerData.jersey);
             if (isJerseyTaken) {
                 setAlertMessage(`El número de camiseta ${playerData.jersey} ya está en uso.`);
+                return prev; // Return original list if jersey is taken
+            }
+            // Add to the end to keep oldest first
+            return [...prev, { id: crypto.randomUUID(), ...playerData }];
+        });
+    }, [setAlertMessage]);
+
+    // NUEVO: Función para actualizar un jugador en la lista global
+    const updateGlobalPlayer = useCallback((playerId, newData) => {
+        setAllPlayers(prev => {
+            // Check for unique jersey within the global list, excluding the player being edited
+            const isJerseyTakenByAnotherPlayer = prev.some(p => p.jersey === newData.jersey && p.id !== playerId);
+            if (isJerseyTakenByAnotherPlayer) {
+                setAlertMessage(`El número de camiseta ${newData.jersey} ya está en uso por otro jugador.`);
                 return prev;
             }
-            return [...prev, { id: crypto.randomUUID(), ...playerData }]; // Usar crypto.randomUUID()
+            return prev.map(p => p.id === playerId ? { ...p, ...newData } : p);
         });
-    };
+    }, [setAlertMessage]);
 
-    // Función para actualizar un jugador de la plantilla
-    const updateRosterPlayer = (playerId, newData) => {
-        setRosterPlayers(prev => prev.map(p => p.id === playerId ? { ...p, ...newData } : p));
-    };
+    // NUEVO: Función para eliminar un jugador de la lista global
+    const removeGlobalPlayer = useCallback((playerId) => {
+        setAllPlayers(prev => prev.filter(p => p.id !== playerId));
+    }, []);
 
-    // Función para eliminar un jugador de la plantilla
-    const removeRosterPlayer = (playerId) => {
-        setRosterPlayers(prev => prev.filter(p => p.id !== playerId));
-    };
+    // NUEVO: Función para reordenar jugadores en la lista global
+    const reorderGlobalPlayers = useCallback((newPlayersOrder) => {
+        setAllPlayers(newPlayersOrder);
+    }, []);
 
-    // Función para añadir un jugador del roster a un equipo de juego
-    const addPlayerToTeamFromRoster = (teamId, rosterPlayer) => {
+
+    // Función para añadir un jugador del roster (global) a un equipo de juego
+    const addPlayerToTeamFromRoster = useCallback((teamId, rosterPlayer) => {
         const newPlayer = {
             id: crypto.randomUUID(), // Nuevo ID único para la instancia del juego
             name: rosterPlayer.name,
@@ -138,82 +271,84 @@ function App() {
             missedFT: 0,
         };
 
-        const currentTeamPlayers = getTeam(teamId).players;
-        // Evitar añadir el mismo jugador (por número de camiseta) dos veces al mismo equipo
-        if (currentTeamPlayers.some(p => p.jersey === newPlayer.jersey)) {
-            setAlertMessage(`El jugador con el número ${newPlayer.jersey} ya está en este equipo.`);
-            return;
-        }
-
         if (teamId === teamA.name) {
-            setTeamA(prev => ({ ...prev, players: [...prev.players, newPlayer] }));
+            setTeamA(prev => {
+                if (prev.players.some(p => p.jersey === newPlayer.jersey)) {
+                    setAlertMessage(`El jugador con el número ${newPlayer.jersey} ya está en este equipo.`);
+                    return prev;
+                }
+                return { ...prev, players: [...prev.players, newPlayer] };
+            });
         } else {
-            setTeamB(prev => ({ ...prev, players: [...prev.players, newPlayer] }));
+            setTeamB(prev => {
+                if (prev.players.some(p => p.jersey === newPlayer.jersey)) {
+                    setAlertMessage(`El jugador con el número ${newPlayer.jersey} ya está en este equipo.`);
+                    return prev;
+                }
+                return { ...prev, players: [...prev.players, newPlayer] };
+            });
         }
-        setShowRosterSelectionModalForTeam(null); // Cerrar modal después de seleccionar
-    };
+        setShowRosterSelectionModalForTeam(null);
+    }, [setTeamA, setTeamB, setAlertMessage, setShowRosterSelectionModalForTeam]);
 
     // Función para eliminar un jugador del equipo de juego
-    const removePlayer = (teamId, playerId) => {
+    const removePlayer = useCallback((teamId, playerId) => {
         if (teamId === teamA.name) {
             setTeamA(prev => ({ ...prev, players: prev.players.filter(p => p.id !== playerId) }));
         } else {
             setTeamB(prev => ({ ...prev, players: prev.players.filter(p => p.id !== playerId) }));
         }
-    };
-
-    // Obtener equipo por ID
-    const getTeam = (teamId) => (teamId === teamA.name ? teamA : teamB);
+    }, [setTeamA, setTeamB]);
 
     // Manejar el cambio de nombre de jugador (en juego)
-    const handlePlayerNameChange = (teamId, playerId, newName) => {
-        const updateTeam = (prevTeam) => ({
-            ...prevTeam,
-            players: prevTeam.players.map(p =>
-                p.id === playerId ? { ...p, name: newName } : p
-            ),
-        });
+    const handlePlayerNameChange = useCallback((teamId, playerId, newName) => {
+        const updateTeamState = (setTeamState) => {
+            setTeamState(prevTeam => ({
+                ...prevTeam,
+                players: prevTeam.players.map(p =>
+                    p.id === playerId ? { ...p, name: newName } : p
+                ),
+            }));
+        };
         if (teamId === teamA.name) {
-            setTeamA(updateTeam);
+            updateTeamState(setTeamA);
         } else {
-            setTeamB(updateTeam);
+            updateTeamState(setTeamB);
         }
-    };
+    }, [setTeamA, setTeamB]);
 
     // Función para actualizar estadísticas y registrar la última acción por equipo
-    const updatePlayerStat = (teamId, playerId, stat, value) => {
+    const updatePlayerStat = useCallback((teamId, playerId, stat, value) => {
         const setTeamState = teamId === teamA.name ? setTeamA : setTeamB;
-        const currentTeam = teamId === teamA.name ? teamA : teamB;
-
-        const playerToUpdate = currentTeam.players.find(p => p.id === playerId);
-
-        if (!playerToUpdate) {
-            console.error(`Player with ID ${playerId} not found in team ${currentTeam.name}.`);
-            return;
-        }
-
-        // Capturar el estado actual del jugador ANTES de la actualización
-        const prevPlayerState = { ...playerToUpdate };
-
         setTeamState(prevTeam => {
+            const playerToUpdate = prevTeam.players.find(p => p.id === playerId);
+            if (!playerToUpdate) {
+                console.error(`Player with ID ${playerId} no encontrado en el equipo ${prevTeam.name}.`);
+                return prevTeam;
+            }
+            const prevPlayerState = { ...playerToUpdate };
+            let scoreChange = 0; // Track score change for the current quarter
+            let foulChange = 0; // Track foul change for the current quarter
             const updatedPlayers = prevTeam.players.map(player => {
                 if (player.id === playerId) {
                     const newPlayer = { ...player };
                     switch (stat) {
-                        case '2PM': newPlayer.made2pt += value; newPlayer.score += (value * 2); break;
-                        case '2PTM': newPlayer.missed2pt += value; break;
-                        case '3PM': newPlayer.made3pt += value; newPlayer.score += (value * 3); break;
-                        case '3PTM': newPlayer.missed3pt += value; break;
-                        case 'FTM': newPlayer.madeFT += value; newPlayer.score += value; break;
-                        case 'FTT': newPlayer.missedFT += value; break;
-                        case 'REB': newPlayer.rebounds += value; break;
-                        case 'AST': newPlayer.assists += value; break;
-                        case 'STL': newPlayer.steals += value; break;
-                        case 'BLK': newPlayer.blocks += value; break;
-                        case 'TOV': newPlayer.turnovers += value; break;
-                        case 'FLT': newPlayer.fouls += value; break;
+                        case '2PM': newPlayer.made2pt = Math.max(0, newPlayer.made2pt + value); scoreChange = (value * 2); newPlayer.score += scoreChange; break;
+                        case '2PTM': newPlayer.missed2pt = Math.max(0, newPlayer.missed2pt + value); break;
+                        case '3PM': newPlayer.made3pt = Math.max(0, newPlayer.made3pt + value); scoreChange = (value * 3); newPlayer.score += scoreChange; break;
+                        case '3PTM': newPlayer.missed3pt = Math.max(0, newPlayer.missed3pt + value); break;
+                        case 'FTM': newPlayer.madeFT = Math.max(0, newPlayer.madeFT + value); scoreChange = value; newPlayer.score += scoreChange; break;
+                        case 'FTT': newPlayer.missedFT = Math.max(0, newPlayer.missedFT + value); break;
+                        case 'REB': newPlayer.rebounds = Math.max(0, newPlayer.rebounds + value); break;
+                        case 'AST': newPlayer.assists = Math.max(0, newPlayer.assists + value); break;
+                        case 'STL': newPlayer.steals = Math.max(0, newPlayer.steals + value); break;
+                        case 'BLK': newPlayer.blocks = Math.max(0, newPlayer.blocks + value); break;
+                        case 'TOV': newPlayer.turnovers = Math.max(0, newPlayer.turnovers + value); break;
+                        case 'FLT': newPlayer.fouls = Math.max(0, newPlayer.fouls + value); foulChange = value; break; // Update foulChange
                         default: break;
                     }
+                    // Asegurarse de que la puntuación no baje de cero si se decrementan tiros y ya no hay más
+                    if (newPlayer.score < 0) newPlayer.score = 0;
                     return newPlayer;
                 }
                 return player;
@@ -221,62 +356,54 @@ function App() {
             return {
                 ...prevTeam,
                 players: updatedPlayers,
+                currentQuarterScore: prevTeam.currentQuarterScore + scoreChange, // Update current quarter score
+                currentQuarterFouls: prevTeam.currentQuarterFouls + foulChange, // Update current quarter fouls
                 lastAction: {
                     playerId: playerId,
                     stat: stat,
                     valueApplied: value,
-                    prevPlayerState: prevPlayerState // Estado del jugador antes de esta acción
+                    prevPlayerState: prevPlayerState,
+                    scoreChange: scoreChange, // Store score change for undo
+                    foulChange: foulChange // Store foul change for undo
                 }
             };
         });
-    };
+    }, [setTeamA, setTeamB]);
 
     // Función para deshacer la última acción de un equipo específico
-    const handleTeamUndo = (teamId) => {
+    const handleTeamUndo = useCallback((teamId) => {
         const setTeamState = teamId === teamA.name ? setTeamA : setTeamB;
-        const currentTeam = teamId === teamA.name ? teamA : teamB;
+        setTeamState(prevTeam => {
+            if (!prevTeam.lastAction) return prevTeam;
 
-        if (!currentTeam.lastAction) return;
+            const { playerId, prevPlayerState, scoreChange, foulChange } = prevTeam.lastAction; // Get scoreChange and foulChange
 
-        const { playerId, prevPlayerState } = currentTeam.lastAction;
-
-        setTeamState(prevTeam => ({
-            ...prevTeam,
-            players: prevTeam.players.map(player => {
+            const updatedPlayers = prevTeam.players.map(player => {
                 if (player.id === playerId) {
-                    return prevPlayerState; // Revertir al estado previo del jugador
+                    return prevPlayerState;
                 }
                 return player;
-            }),
-            lastAction: null // Limpiar la última acción después de deshacer
-        }));
-    };
+            });
+            return {
+                ...prevTeam,
+                players: updatedPlayers,
+                currentQuarterScore: prevTeam.currentQuarterScore - scoreChange, // Reverse score change
+                currentQuarterFouls: prevTeam.currentQuarterFouls - foulChange, // Reverse foul change
+                lastAction: null
+            };
+        });
+    }, [setTeamA, setTeamB]);
 
-    // Manejar el fin del partido
-    const handleEndGame = () => {
-        setIsRunning(false);
-        const gameSummary = {
-            id: crypto.randomUUID(), // Usar crypto.randomUUID()
-            date: new Date().toLocaleString(),
-            duration: formatTime(initialGameTime - timer), // Duración real del partido
-            teamA: {
-                name: teamA.name,
-                score: teamA.players.reduce((acc, p) => acc + p.score, 0),
-                players: teamA.players,
-            },
-            teamB: {
-                name: teamB.name,
-                score: teamB.players.reduce((acc, p) => acc + p.score, 0),
-                players: teamB.players,
-            },
-        };
-        setHistory(prev => [...prev, gameSummary]);
-        setPage('history');
-        resetGame(); // Resetea el juego para el siguiente partido
-    };
+    // Resetea solo el estado de los jugadores y modales en App.js
+    const resetGamePlayersAndModals = useCallback(() => {
+        setTeamA({ name: 'Local', players: generateDefaultPlayers('Local'), lastAction: null, currentQuarterScore: 0, allQuarterScores: [], currentQuarterFouls: 0 });
+        setTeamB({ name: 'Visitante', players: generateDefaultPlayers('Visitante'), lastAction: null, currentQuarterScore: 0, allQuarterScores: [], currentQuarterFouls: 0 });
+        setShowPlayerStatsModal(null);
+        setShowRosterSelectionModalForTeam(null);
+    }, []); // No depende de nada externo ya que generateDefaultPlayers es interna
 
     // Función para generar jugadores por defecto
-    const generateDefaultPlayers = (teamName, count = 5) => {
+    const generateDefaultPlayers = useCallback((teamName, count = 5) => {
         const players = [];
         for (let i = 1; i <= count; i++) {
             players.push({
@@ -299,21 +426,68 @@ function App() {
             });
         }
         return players;
-    };
+    }, []);
 
-    // Resetear el estado del juego y añadir jugadores por defecto
-    const resetGame = () => {
-        setTimer(initialGameTime); // Set timer to initial configured time
+    // Manejar el fin del partido - ahora recibe el tiempo restante de GamePage
+    const handleEndGame = useCallback(() => {
+        const finalScoreA = teamA.players.reduce((acc, p) => acc + p.score, 0);
+        const finalScoreB = teamB.players.reduce((acc, p) => acc + p.score, 0);
+
+        // Ensure the current quarter's score is added if the game ends prematurely
+        let finalTeamAQuarterScores = [...teamA.allQuarterScores];
+        let finalTeamBQuarterScores = [...teamB.allQuarterScores];
+
+        // Only add the current quarter's score if it hasn't been added by handleNextQuarter
+        // Or if it's the last quarter and the score hasn't been recorded yet
+        if (finalTeamAQuarterScores.length < currentQuarter) {
+            finalTeamAQuarterScores.push(teamA.currentQuarterScore);
+            finalTeamBQuarterScores.push(teamB.currentQuarterScore);
+        }
+
+        const gameSummary = {
+            id: crypto.randomUUID(), // Usar crypto.randomUUID()
+            date: new Date().toLocaleString(),
+            duration: formatTime(initialGameTime - timer), // Duración real del partido
+            teamA: {
+                name: teamA.name,
+                score: finalScoreA,
+                players: teamA.players,
+                totalFouls: teamA.players.reduce((acc, p) => acc + p.fouls, 0), // Añadir faltas totales (acumuladas)
+                quarterScores: finalTeamAQuarterScores, // Store quarter scores
+            },
+            teamB: {
+                name: teamB.name,
+                score: finalScoreB,
+                players: teamB.players,
+                totalFouls: teamB.players.reduce((acc, p) => acc + p.fouls, 0), // Añadir faltas totales (acumuladas)
+                quarterScores: finalTeamBQuarterScores, // Store quarter scores
+            },
+            quartersPlayed: currentQuarter, // Guardar cuartos jugados
+            totalQuarters: totalQuarters, // Guardar total de cuartos
+        };
+        setHistory(prev => [...prev, gameSummary]);
+        navigateToPage('history'); // Usar navigateToPage para limpiar el unfinishedGame
+        // Resetear jugadores y modales, y el temporizador global
+        resetGamePlayersAndModals();
+        setTimer(initialGameTime); // Reinicia el timer al finalizar el partido
         setIsRunning(false);
-        setTeamA({ name: 'Local', players: generateDefaultPlayers('Local'), lastAction: null }); // Limpiar lastAction
-        setTeamB({ name: 'Visitante', players: generateDefaultPlayers('Visitante'), lastAction: null }); // Limpiar lastAction
-        setShowPlayerStatsModal(null);
-        setShowRosterSelectionModalForTeam(null);
-        setTimeUpMessage(''); // Limpiar mensaje de tiempo finalizado
-    };
+        setTimeUpMessage('');
+        setCurrentQuarter(1); // Resetear cuartos
+        // Reset quarter scores and fouls for the next game
+        setTeamA(prev => ({ ...prev, currentQuarterScore: 0, allQuarterScores: [], currentQuarterFouls: 0 }));
+        setTeamB(prev => ({ ...prev, currentQuarterScore: 0, allQuarterScores: [], currentQuarterFouls: 0 }));
+        setUnfinishedGame(null); // Asegurarse de limpiar el partido no terminado
+        localStorage.removeItem('forasterosUnfinishedGame');
+    }, [initialGameTime, timer, teamA, teamB, resetGamePlayersAndModals, currentQuarter, totalQuarters, navigateToPage]);
+
+    // NUEVO: Obtener todos los jugadores de la lista global para el modal de selección de jugadores en el partido
+    const allRosterPlayers = useMemo(() => {
+        return allPlayers; // Ahora es directamente allPlayers
+    }, [allPlayers]);
+
 
     // Componente para la página de inicio
-    const HomePage = () => (
+    const HomePage = useCallback(() => (
         <div className="flex flex-col items-center justify-center min-h-screen text-white p-4">
             <h1 className="text-4xl font-bold mb-4 text-forasteros-title">Forasteros Stats App</h1>
             <img
@@ -323,19 +497,27 @@ function App() {
             />
             <div className="flex flex-col space-y-4 w-full max-w-sm">
                 <button
-                    onClick={() => setPage('setupGame')} // Ir a la página de configuración
+                    onClick={() => navigateToPage('setupGame')} // Ir a la página de configuración
                     className="bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg text-lg transition transform hover:scale-105"
                 >
                     Iniciar Nuevo Partido
                 </button>
+                {unfinishedGame && ( // Mostrar botón de reanudar solo si hay un partido no terminado
+                    <button
+                        onClick={handleResumeGame}
+                        className="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg text-lg transition transform hover:scale-105"
+                    >
+                        Reanudar Partido
+                    </button>
+                )}
                 <button
-                    onClick={() => setPage('roster')}
+                    onClick={() => navigateToPage('roster')}
                     className="bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg text-lg transition transform hover:scale-105"
                 >
-                    Gestionar Plantilla de Jugadores
+                    Gestionar Jugadores
                 </button>
                 <button
-                    onClick={() => setPage('history')}
+                    onClick={() => navigateToPage('history')}
                     className="bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg text-lg transition transform hover:scale-105"
                 >
                     Historial de Partidos
@@ -343,33 +525,49 @@ function App() {
             </div>
             <p className="mt-8 text-gray-400 text-sm">Desarrollado por Forasteros lb</p>
         </div>
-    );
+    ), [navigateToPage, unfinishedGame, handleResumeGame]);
 
     // Nuevo componente para configurar el tiempo del juego
-    const GameSetupPage = () => {
-        const [minutes, setMinutes] = useState(10); // Default 10 minutes
+    const GameSetupPage = useCallback(() => {
+        const [minutes, setMinutes] = useState(initialGameTime / 60); // Default 10 minutes
+        const [quarters, setQuarters] = useState(totalQuarters); // Default 4 quarters
 
         const handleStartGame = () => {
             if (minutes <= 0 || isNaN(minutes)) {
                 setAlertMessage("Por favor, introduce un número de minutos válido y positivo.");
                 return;
             }
+            if (quarters <= 0 || isNaN(quarters)) {
+                setAlertMessage("Por favor, introduce un número de cuartos válido y positivo.");
+                return;
+            }
             setInitialGameTime(minutes * 60); // Convert minutes to seconds
-            setTimer(minutes * 60); // Set initial timer value
-            resetGame(); // Reset players and other game states
-            setPage('game'); // Navigate to game page
+            setTimer(minutes * 60); // Inicializa el timer global de App
+            setTotalQuarters(quarters); // Establece el total de cuartos
+            setCurrentQuarter(1); // Inicia en el primer cuarto
+            resetGamePlayersAndModals(); // Reset players before starting new game
+            navigateToPage('game'); // Navigate to game page
         };
 
         return (
             <div className="min-h-screen flex flex-col items-center justify-center text-white p-4">
-                <h2 className="text-4xl font-bold mb-8 text-blue-400">Configurar Partido</h2>
+                <h2 className="text-4xl font-bold mb-8 text-white">Configurar Partido</h2> {/* Título en blanco */}
                 <div className="bg-gray-800 p-8 rounded-xl shadow-2xl border border-gray-700 flex flex-col items-center space-y-6 max-w-sm w-full">
-                    <label htmlFor="game-minutes" className="text-lg font-semibold text-gray-300">Duración del Partido (minutos):</label>
+                    <label htmlFor="game-minutes" className="text-lg font-semibold text-gray-300">Duración por Cuarto (minutos):</label>
                     <input
                         id="game-minutes"
                         type="number"
                         value={minutes}
                         onChange={(e) => setMinutes(parseInt(e.target.value) || 0)}
+                        min="1"
+                        className="w-full p-3 rounded-md bg-gray-700 text-white text-center text-2xl font-bold focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <label htmlFor="total-quarters" className="text-lg font-semibold text-gray-300">Cantidad de Cuartos:</label>
+                    <input
+                        id="total-quarters"
+                        type="number"
+                        value={quarters}
+                        onChange={(e) => setQuarters(parseInt(e.target.value) || 0)}
                         min="1"
                         className="w-full p-3 rounded-md bg-gray-700 text-white text-center text-2xl font-bold focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
@@ -380,7 +578,7 @@ function App() {
                         Comenzar Partido
                     </button>
                     <button
-                        onClick={() => setPage('home')}
+                        onClick={() => navigateToPage('home')}
                         className="bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded-lg text-sm shadow-md transition duration-200 w-full"
                     >
                         &larr; Volver
@@ -388,34 +586,63 @@ function App() {
                 </div>
             </div>
         );
-    };
+    }, [initialGameTime, totalQuarters, resetGamePlayersAndModals, setAlertMessage, setInitialGameTime, navigateToPage, setTimer, setTotalQuarters, setCurrentQuarter]);
 
-    // Componente para la página de gestión de plantilla
-    const RosterManagementPage = () => {
+    // Componente para la página de gestión de jugadores (antes RosterManagementPage)
+    const RosterManagementPage = useCallback(() => {
         const [newPlayerName, setNewPlayerName] = useState('');
         const [newPlayerJersey, setNewPlayerJersey] = useState('');
         const [editingPlayerId, setEditingPlayerId] = useState(null);
         const [editPlayerName, setEditPlayerName] = useState('');
         const [editPlayerJersey, setEditPlayerJersey] = useState('');
+        const [confirmDeletePlayerId, setConfirmDeletePlayerId] = useState(null);
+        const [successMessage, setSuccessMessage] = useState(''); // NEW: State for success message
+
+        // Referencia para el campo de entrada del nombre del jugador
+        const newPlayerNameInputRef = useRef(null);
+
+        // Lista de nombres aleatorios
+        const randomNames = useMemo(() => [
+            "Juan", "María", "Pedro", "Ana", "Luis", "Sofía", "Carlos", "Laura",
+            "Miguel", "Elena", "José", "Isabel", "David", "Carmen", "Javier", "Pilar",
+            "Fernando", "Rosa", "Daniel", "Lucía", "Alejandro", "Martina", "Pablo", "Valeria"
+        ], []);
+
+        // Drag and Drop states
+        const [draggedPlayerId, setDraggedPlayerId] = useState(null);
+        const [draggedOverPlayerId, setDraggedOverPlayerId] = useState(null);
 
         const handleAddPlayer = (e) => {
             e.preventDefault();
-            if (newPlayerName.trim() === '' || newPlayerJersey.trim() === '') {
-                setAlertMessage('El nombre y número de camiseta no pueden estar vacíos.');
-                return;
+            const nameInput = newPlayerName.trim();
+            let finalName;
+            if (nameInput === '') {
+                finalName = randomNames[Math.floor(Math.random() * randomNames.length)];
+            } else {
+                finalName = nameInput;
             }
-            const jersey = parseInt(newPlayerJersey);
+
+            let jersey = parseInt(newPlayerJersey);
             if (isNaN(jersey) || jersey <= 0) {
-                setAlertMessage('El número de camiseta debe ser un número positivo.');
-                return;
+                const maxJersey = allPlayers.reduce((max, p) => Math.max(max, p.jersey), 0);
+                jersey = maxJersey + 1;
+            } else {
+                if (allPlayers.some(p => p.jersey === jersey)) { // Check against global list
+                    setAlertMessage(`El número de camiseta ${jersey} ya está en uso.`);
+                    return;
+                }
             }
-            if (rosterPlayers.some(p => p.jersey === jersey)) {
-                setAlertMessage(`El número de camiseta ${jersey} ya está en uso.`);
-                return;
+            addPlayerToGlobalRoster({ name: finalName, jersey }); // Call global function
+            setNewPlayerName(''); // Limpiar solo el nombre para seguir agregando
+            setNewPlayerJersey(''); // Limpiar el número de camiseta
+            // NEW: Set success message
+            setSuccessMessage('Jugador añadido exitosamente.');
+            setTimeout(() => setSuccessMessage(''), 3000); // Clear after 3 seconds
+
+            // Enfocar el campo de entrada del nombre después de añadir
+            if (newPlayerNameInputRef.current) {
+                newPlayerNameInputRef.current.focus();
             }
-            addRosterPlayer({ name: newPlayerName.trim(), jersey });
-            setNewPlayerName('');
-            setNewPlayerJersey('');
         };
 
         const handleEditClick = (player) => {
@@ -435,67 +662,152 @@ function App() {
                 setAlertMessage('El número de camiseta debe ser un número positivo.');
                 return;
             }
-            // Check for unique jersey only if it's changing and not the current player's jersey
-            const isJerseyTakenByAnotherPlayer = rosterPlayers.some(p => p.jersey === jersey && p.id !== editingPlayerId);
+            const isJerseyTakenByAnotherPlayer = allPlayers.some(p => p.jersey === jersey && p.id !== editingPlayerId); // Check against global list
             if (isJerseyTakenByAnotherPlayer) {
                 setAlertMessage(`El número de camiseta ${jersey} ya está en uso por otro jugador.`);
                 return;
             }
 
-            updateRosterPlayer(editingPlayerId, { name: editPlayerName.trim(), jersey });
+            updateGlobalPlayer(editingPlayerId, { name: editPlayerName.trim(), jersey }); // Call global function
             setEditingPlayerId(null);
             setEditPlayerName('');
             setEditPlayerJersey('');
+            setAlertMessage('Jugador actualizado.');
+        };
+
+        const handleDeletePlayerClick = (playerId) => {
+            setConfirmDeletePlayerId(playerId);
+        };
+
+        const confirmDeletePlayer = () => {
+            removeGlobalPlayer(confirmDeletePlayerId); // Call global function
+            setConfirmDeletePlayerId(null);
+            setAlertMessage('Jugador eliminado.');
+        };
+
+        const cancelDeletePlayer = () => {
+            setConfirmDeletePlayerId(null);
+        };
+
+        // Drag and Drop Handlers
+        const handleDragStart = (e, id) => {
+            setDraggedPlayerId(id);
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', id);
+        };
+
+        const handleDragOver = (e) => {
+            e.preventDefault(); // Allows drop
+        };
+
+        const handleDragEnter = (e, id) => {
+            e.preventDefault();
+            setDraggedOverPlayerId(id);
+        };
+
+        const handleDragLeave = (e) => {
+            e.preventDefault();
+            setDraggedOverPlayerId(null);
+        };
+
+        const handleDrop = (e, dropTargetId) => {
+            e.preventDefault();
+            const draggedId = e.dataTransfer.getData('text/plain');
+            if (!draggedId || draggedId === dropTargetId) {
+                setDraggedPlayerId(null);
+                setDraggedOverPlayerId(null);
+                return;
+            }
+
+            const newPlayers = [...allPlayers]; // Use allPlayers directly
+            const draggedIndex = newPlayers.findIndex(p => p.id === draggedId);
+            const dropTargetIndex = newPlayers.findIndex(p => p.id === dropTargetId);
+
+            if (draggedIndex === -1 || dropTargetIndex === -1) {
+                setDraggedPlayerId(null);
+                setDraggedOverPlayerId(null);
+                return;
+            }
+
+            const [removed] = newPlayers.splice(draggedIndex, 1);
+            newPlayers.splice(dropTargetIndex, 0, removed);
+
+            reorderGlobalPlayers(newPlayers); // Call global function
+            setDraggedPlayerId(null);
+            setDraggedOverPlayerId(null);
+            setAlertMessage('Orden de jugadores actualizado.');
         };
 
         return (
             <div className="min-h-screen text-white p-4">
                 <div className="flex justify-between items-center mb-6">
                     <button
-                        onClick={() => setPage('home')}
+                        onClick={() => navigateToPage('home')}
                         className="bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded-lg text-sm shadow-md transition duration-200"
                     >
                         &larr; Volver
                     </button>
-                    <h2 className="text-3xl font-bold text-purple-400">Gestionar Plantilla</h2>
+                    <h2 className="text-3xl font-bold text-white">Gestionar Jugadores</h2> {/* Título actualizado */}
                 </div>
+
+                {/* NEW: Success Message */}
+                {successMessage && (
+                    <div className="bg-green-600 text-white p-3 rounded-md text-center mb-4 animate-fadeInOut">
+                        {successMessage}
+                    </div>
+                )}
 
                 {/* Formulario para añadir nuevo jugador */}
                 <div className="bg-gray-800 p-6 rounded-lg shadow-xl mb-6">
                     <h3 className="text-xl font-bold text-white mb-4">Añadir Nuevo Jugador</h3>
-                    <form onSubmit={handleAddPlayer} className="flex flex-col sm:flex-row gap-4">
+                    <form onSubmit={handleAddPlayer} className="flex flex-col sm:flex-row gap-3 items-center"> {/* Added items-center for vertical alignment */}
                         <input
                             type="text"
-                            placeholder="Nombre del Jugador"
+                            placeholder="Nombre del Jugador (opcional)" // Modificado placeholder
                             value={newPlayerName}
                             onChange={(e) => setNewPlayerName(e.target.value)}
-                            className="flex-grow bg-gray-700 text-white p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            className="flex-grow bg-gray-700 text-white p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            ref={newPlayerNameInputRef}
                         />
                         <input
                             type="number"
-                            placeholder="Número de Camiseta"
+                            placeholder="Núm." /* MODIFIED: Shorter placeholder */
                             value={newPlayerJersey}
                             onChange={(e) => setNewPlayerJersey(e.target.value)}
-                            className="w-28 bg-gray-700 text-white p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            className="w-16 bg-gray-700 text-white p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-center" /* MODIFIED: w-16, green ring, text-center */
                         />
                         <button
                             type="submit"
-                            className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition duration-200"
+                            className="bg-green-600 hover:bg-green-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold shadow-md transition duration-200 flex-shrink-0" /* MODIFIED: green, circular, smaller */
+                            title="Añadir Jugador"
                         >
-                            Añadir
+                            +
                         </button>
                     </form>
                 </div>
 
-                {/* Lista de jugadores en la plantilla */}
+                {/* Lista de jugadores */}
                 <div className="bg-gray-800 p-6 rounded-lg shadow-xl">
-                    <h3 className="text-xl font-bold text-white mb-4">Jugadores en Plantilla</h3>
-                    {rosterPlayers.length === 0 ? (
-                        <p className="text-gray-400">No hay jugadores en la plantilla. ¡Añade algunos!</p>
+                    <h3 className="text-xl font-bold text-white mb-4">Lista de Jugadores</h3>
+                    {allPlayers.length === 0 ? (
+                        <p className="text-gray-400">No hay jugadores en la lista. ¡Añade algunos!</p>
                     ) : (
                         <div className="space-y-3">
-                            {rosterPlayers.map(player => (
-                                <div key={player.id} className="bg-gray-700 p-3 rounded-md flex flex-col sm:flex-row items-center justify-between gap-3">
+                            {allPlayers.map(player => (
+                                <div
+                                    key={player.id}
+                                    draggable
+                                    onDragStart={(e) => handleDragStart(e, player.id)}
+                                    onDragOver={handleDragOver}
+                                    onDragEnter={(e) => handleDragEnter(e, player.id)}
+                                    onDragLeave={handleDragLeave}
+                                    onDrop={(e) => handleDrop(e, player.id)}
+                                    className={`
+                                            bg-gray-700 p-3 rounded-md flex flex-col sm:flex-row items-center justify-between gap-3
+                                            ${draggedPlayerId === player.id ? 'opacity-50 border-2 border-blue-500' : ''}
+                                            ${draggedOverPlayerId === player.id && draggedPlayerId !== player.id ? 'bg-gray-600 border-2 border-green-500' : ''}
+                                            `}
+                                >
                                     {editingPlayerId === player.id ? (
                                         <form onSubmit={handleUpdatePlayer} className="flex flex-col sm:flex-row gap-3 w-full">
                                             <input
@@ -508,7 +820,7 @@ function App() {
                                                 type="number"
                                                 value={editPlayerJersey}
                                                 onChange={(e) => setEditPlayerJersey(e.target.value)}
-                                                className="w-24 bg-gray-600 text-white p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                className="w-16 sm:w-24 bg-gray-600 text-white p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" /* MODIFIED: w-16 sm:w-24 */
                                             />
                                             <div className="flex gap-2">
                                                 <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white text-sm py-2 px-3 rounded-md">Guardar</button>
@@ -526,7 +838,7 @@ function App() {
                                                     Editar
                                                 </button>
                                                 <button
-                                                    onClick={() => removeRosterPlayer(player.id)}
+                                                    onClick={() => handleDeletePlayerClick(player.id)}
                                                     className="bg-red-500 hover:bg-red-600 text-white text-sm py-2 px-3 rounded-md"
                                                 >
                                                     Eliminar
@@ -539,63 +851,285 @@ function App() {
                         </div>
                     )}
                 </div>
+
+                {confirmDeletePlayerId && (
+                    <ConfirmDialog
+                        message={`¿Estás seguro de que quieres eliminar a ${allPlayers.find(p => p.id === confirmDeletePlayerId)?.name || 'este jugador'} de la lista?`}
+                        onConfirm={confirmDeletePlayer}
+                        onCancel={cancelDeletePlayer}
+                    />
+                )}
             </div>
         );
-    };
+    }, [allPlayers, setAlertMessage, addPlayerToGlobalRoster, updateGlobalPlayer, removeGlobalPlayer, reorderGlobalPlayers, navigateToPage]);
 
 
-    // Componente para la página del juego
-    const GamePage = () => {
-        const currentTeamA = getTeam(teamA.name);
-        const currentTeamB = getTeam(teamB.name);
+    // New component for a single player row
+    const PlayerRow = React.memo(({ player, teamId, isRunning, updatePlayerStat, removePlayer, handlePlayerNameChange, handlePlayerPressStart, handlePlayerPressEnd, pressTimerId, setShowPlayerStatsModal }) => { // Added setShowPlayerStatsModal
+        const [localPlayerName, setLocalPlayerName] = useState(player.name);
 
-        const currentScoreA = currentTeamA.players.reduce((acc, p) => acc + p.score, 0);
-        const currentScoreB = currentTeamB.players.reduce((acc, p) => acc + p.score, 0);
+        // Update local state if player.name changes from parent (e.g., initial load or undo)
+        useEffect(() => {
+            setLocalPlayerName(player.name);
+        }, [player.name]);
 
-        const [isFullScreen, setIsFullScreen] = useState(false);
+        const handleLocalNameChange = (e) => {
+            setLocalPlayerName(e.target.value);
+        };
 
-        const toggleFullScreen = () => {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().then(() => {
-                    setIsFullScreen(true);
-                }).catch(err => {
-                    setAlertMessage(`Error al intentar activar pantalla completa: ${err.message}. Asegúrate de que tu navegador lo permita.`);
-                    console.error(`Error attempting to enable full-screen: ${err.message} (${err.name})`);
-                });
-            } else {
-                document.exitFullscreen().then(() => {
-                    setIsFullScreen(false);
-                }).catch(err => {
-                    setAlertMessage(`Error al intentar salir de pantalla completa: ${err.message}.`);
-                    console.error(`Error attempting to exit full-screen: ${err.message} (${err.name})`);
-                });
+        const handleNameBlur = () => {
+            if (localPlayerName.trim() !== player.name) { // Only update if changed
+                handlePlayerNameChange(teamId, player.id, localPlayerName.trim());
             }
         };
 
-        // Escuchar el evento fullscreenchange para actualizar el estado si el usuario sale con ESC
-        useEffect(() => {
-            const handleFullScreenChange = () => {
-                setIsFullScreen(!!document.fullscreenElement);
+        const handleNameKeyDown = (e) => {
+            if (e.key === 'Enter') {
+                e.target.blur(); // Trigger blur to save changes
+            }
+        };
+
+        return (
+            <div
+                onMouseDown={() => handlePlayerPressStart(player, teamId)}
+                onMouseUp={() => handlePlayerPressEnd(player, teamId)}
+                onMouseLeave={() => { if (pressTimerId) clearTimeout(pressTimerId); setShowPlayerStatsModal(null); }} // Changed setPressTimerId to setShowPlayerStatsModal(null)
+                onTouchStart={() => handlePlayerPressStart(player, teamId)}
+                onTouchEnd={() => handlePlayerPressEnd(player, teamId)}
+                onTouchCancel={() => { if (pressTimerId) clearTimeout(pressTimerId); setShowPlayerStatsModal(null); }} // Changed setPressTimerId to setShowPlayerStatsModal(null)
+                className={`
+                    bg-gray-600 p-3 rounded-lg shadow-md flex flex-col gap-2 transition duration-200 ease-in-out
+                    ${isRunning ? 'cursor-pointer hover:bg-gray-500' : 'cursor-default opacity-80'}
+                    sm:flex-row sm:items-center sm:justify-between
+                `}
+            >
+                {!isRunning && (
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation(); // Stop propagation to prevent opening stats modal
+                            removePlayer(teamId, player.id);
+                        }}
+                        onMouseDown={(e) => e.stopPropagation()} // Stop propagation of mousedown event
+                        onTouchStart={(e) => e.stopPropagation()} // Stop propagation of touchstart event
+                        className="rounded-full bg-red-500 hover:bg-red-600 text-white w-7 h-7 flex items-center justify-center text-sm font-bold transition duration-200 flex-shrink-0 shadow-sm"
+                        title="Eliminar Jugador del Partido"
+                    >
+                        -
+                    </button>
+                )}
+
+                <div className="
+                    flex flex-col items-center w-full gap-2
+                    sm:flex-row sm:justify-between sm:w-auto sm:flex-grow
+                ">
+                    {/* Nombre y Número del Jugador */}
+                    <div className="flex items-center gap-1 w-full text-center sm:w-auto sm:text-left justify-center sm:justify-start">
+                        <span className="text-sm text-gray-300">#</span>
+                        <span className="text-base font-semibold text-white">{player.jersey}</span>
+                        <input
+                            type="text"
+                            value={localPlayerName} // Use local state
+                            onChange={handleLocalNameChange} // Update local state
+                            onBlur={handleNameBlur} // Update parent state on blur
+                            onKeyDown={handleNameKeyDown} // Trigger blur on Enter
+                            readOnly={isRunning}
+                            // Stop propagation for mousedown/touchstart/mouseup/touchend on the input itself
+                            // only when not running, to prevent parent's long-press/short-tap logic
+                            onMouseDown={(e) => { if (!isRunning) e.stopPropagation(); }}
+                            onMouseUp={(e) => { if (!isRunning) e.stopPropagation(); }}
+                            onTouchStart={(e) => { if (!isRunning) e.stopPropagation(); }}
+                            onTouchEnd={(e) => { if (!isRunning) e.stopPropagation(); }}
+                            className={`
+                                text-base font-semibold text-white w-full text-center bg-gray-700 p-1 rounded-md
+                                focus:outline-none focus:ring-2 focus:ring-white min-w-0 flex-grow
+                                ${isRunning ? 'cursor-pointer opacity-90' : ''}
+                                sm:w-auto sm:text-left
+                            `}
+                        />
+                    </div>
+
+                    {/* Estadísticas del Jugador: Puntos, Faltas - REVISADO */}
+                    <div className="
+                        flex flex-row justify-around w-full gap-x-1 items-center
+                        sm:justify-center sm:space-x-3 sm:w-auto
+                    ">
+                        <div className="flex flex-col items-center justify-center min-w-[35px]">
+                            <span className="text-xs text-blue-300 sm:text-sm">Pts:</span>
+                            <span className="text-lg font-bold text-blue-400 sm:text-xl">{player.score}</span>
+                        </div>
+                        <div className="flex flex-col items-center justify-center min-w-[35px]">
+                            <span className="text-xs text-red-300 sm:text-sm">Flt:</span>
+                            <span className="text-lg font-bold text-red-400 sm:text-xl">{player.fouls}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    });
+
+    // Componente para la página del juego
+    const GamePage = React.memo(({
+        timer, setIsRunning, isRunning, timeUpMessage, setTimeUpMessage, localResetGame, // Recibe del App
+        teamA, setTeamA, teamB, setTeamB,
+        updatePlayerStat, handleTeamUndo, onEndGame,
+        setShowRosterSelectionModalForTeam, setShowPlayerStatsModal, // Pass setShowPlayerStatsModal
+        navigateToPage, setAlertMessage, // rosterPlayers,  <-- REMOVED, now using allRosterPlayers implicitly
+        addPlayerToTeamFromRoster, removePlayer, handlePlayerNameChange,
+        currentQuarter, setCurrentQuarter, totalQuarters, initialGameTime, setTimer,
+        allRosterPlayers, // Pasamos allRosterPlayers para verificar si está vacío
+        addPlayerToGlobalRoster, updateGlobalPlayer, removeGlobalPlayer // PASAMOS LAS FUNCIONES DE GESTIÓN DE JUGADORES
+    }) => {
+        // Estado para el temporizador de long press en el área del jugador
+        const [pressTimerId, setPressTimerId] = useState(null);
+        const longPressThreshold = 2000; // 2 segundos
+
+        // NUEVO: Estado para controlar la visibilidad del modal de la plantilla
+        const [showRosterViewModal, setShowRosterViewModal] = useState(false);
+
+        // Lista de nombres aleatorios para jugadores genéricos
+        const randomGenericNames = useMemo(() => [
+            "Jugador Genérico 1", "Estrella Aleatoria", "Novato Prometedor", "As del Balón",
+            "Defensor Feroz", "Tirador Preciso", "Rebotero Maestro", "Asistente Clave",
+            "MVP Sorpresa", "Talento Oculto", "Velocista", "Gigante de la Cancha",
+            "Mago del Balón", "Capitán Anónimo", "El Increíble", "Fuerza Bruta"
+        ], []);
+
+        // Función para añadir un jugador genérico directamente al equipo
+        const addGenericPlayerToTeamLocal = useCallback((teamId) => {
+            const currentTeamPlayers = teamId === teamA.name ? teamA.players : teamB.players;
+            const maxJersey = currentTeamPlayers.reduce((max, p) => Math.max(max, p.jersey), 0);
+            const newJersey = maxJersey + 1;
+            const randomName = randomGenericNames[Math.floor(Math.random() * randomGenericNames.length)];
+
+            const genericPlayer = {
+                id: crypto.randomUUID(),
+                name: randomName,
+                jersey: newJersey,
+                score: 0,
+                rebounds: 0,
+                assists: 0,
+                steals: 0,
+                blocks: 0,
+                turnovers: 0,
+                fouls: 0,
+                made2pt: 0,
+                missed2pt: 0,
+                made3pt: 0,
+                missed3pt: 0,
+                madeFT: 0,
+                missedFT: 0,
             };
-            document.addEventListener('fullscreenchange', handleFullScreenChange);
-            return () => {
-                document.removeEventListener('fullscreenchange', handleFullScreenChange);
-            };
-        }, []);
+            addPlayerToTeamFromRoster(teamId, genericPlayer);
+        }, [teamA.name, teamA.players, teamB.name, teamB.players, randomGenericNames, addPlayerToTeamFromRoster]);
+
+
+        // Función para iniciar el temporizador de long press
+        const handlePlayerPressStart = useCallback((player, teamName) => {
+            // Limpiar cualquier temporizador existente para evitar múltiples temporizadores
+            if (pressTimerId) {
+                clearTimeout(pressTimerId);
+            }
+            const timer = setTimeout(() => {
+                // Esto es un long press
+                setShowPlayerStatsModal({ playerId: player.id, teamId: teamName, isLongPress: true });
+                setPressTimerId(null); // Limpiar ID del temporizador ya que la acción se ha realizado
+            }, longPressThreshold);
+            setPressTimerId(timer);
+        }, [pressTimerId, setShowPlayerStatsModal]);
+
+        // Función para finalizar el temporizador de long press
+        const handlePlayerPressEnd = useCallback((player, teamName) => {
+            if (pressTimerId) {
+                clearTimeout(pressTimerId);
+                setPressTimerId(null);
+                // Si el temporizador se limpió, significa que fue un toque corto (menos de longPressThreshold)
+                // Abrir el modal solo si no está ya abierto por un long press
+                if (!showPlayerStatsModal || showPlayerStatsModal.playerId !== player.id || !showPlayerStatsModal.isLongPress) {
+                    setShowPlayerStatsModal({ playerId: player.id, teamId: teamName, isLongPress: false });
+                }
+            }
+        }, [pressTimerId, showPlayerStatsModal, setShowPlayerStatsModal]);
+
+        const currentScoreA = teamA.players.reduce((acc, p) => acc + p.score, 0);
+        const currentScoreB = teamB.players.reduce((acc, p) => acc + p.score, 0);
+        // Las faltas totales que se muestran en el marcador son las faltas del cuarto actual
+        const currentQuarterFoulsA = teamA.currentQuarterFouls;
+        const currentQuarterFoulsB = teamB.currentQuarterFouls;
+
+        // Función para avanzar al siguiente cuarto
+        const handleNextQuarter = useCallback(() => {
+            // Capture current quarter's score
+            const currentQuarterScoreA = teamA.currentQuarterScore;
+            const currentQuarterScoreB = teamB.currentQuarterScore;
+
+            // Update allQuarterScores for both teams and reset currentQuarterScore
+            setTeamA(prev => ({ ...prev, allQuarterScores: [...prev.allQuarterScores, currentQuarterScoreA], currentQuarterScore: 0, currentQuarterFouls: 0 })); // Reset currentQuarterFouls
+            setTeamB(prev => ({ ...prev, allQuarterScores: [...prev.allQuarterScores, currentQuarterScoreB], currentQuarterScore: 0, currentQuarterFouls: 0 })); // Reset currentQuarterFouls
+
+            setIsRunning(false); // Pausar el temporizador al cambiar de cuarto
+            setTimer(initialGameTime); // Reiniciar el temporizador para el nuevo cuarto
+            setTimeUpMessage(''); // Limpiar mensaje de tiempo finalizado
+
+            if (currentQuarter < totalQuarters) {
+                setCurrentQuarter(prev => prev + 1);
+                setIsRunning(true); // Auto-start for next quarter
+            } else {
+                // Si es el último cuarto, finalizar el partido
+                onEndGame(); // onEndGame will now capture the final state including quarter scores
+            }
+        }, [currentQuarter, totalQuarters, setIsRunning, setTimer, initialGameTime, setTimeUpMessage, setCurrentQuarter, onEndGame, teamA, teamB, setTeamA, setTeamB]);
 
 
         return (
             <div className="min-h-screen text-white p-4">
-                <div className="flex flex-col items-center justify-between mb-6 sm:flex-row">
-                    <button
-                        onClick={() => setPage('home')}
-                        className="bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded-lg text-sm shadow-md transition duration-200 mb-4 sm:mb-0"
-                    >
-                        &larr; Volver
-                    </button>
-                    <h2 className="text-3xl font-bold text-blue-400 mb-4 sm:mb-0">Partido Actual</h2>
-                    <div className="text-5xl font-extrabold bg-gray-800 py-3 px-6 rounded-lg shadow-inner text-center w-full sm:w-auto">
+                {/* MODIFIED: Use grid-cols-1 on mobile, sm:grid-cols-3 on larger screens */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 items-center mb-6 gap-y-4 sm:gap-y-0"> {/* Added gap-y for vertical spacing on mobile */}
+                    <div className="flex flex-wrap gap-2 justify-center sm:justify-start"> {/* Use flex-wrap and justify-center for buttons on small screens */}
+                        <button
+                            onClick={() => navigateToPage('home')}
+                            className="bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded-lg text-sm shadow-md transition duration-200"
+                            title="Volver a Inicio"
+                        >
+                            {/* Home Icon (SVG) */}
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 inline-block" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+                            </svg>
+                        </button>
+                        <button
+                            onClick={() => {
+                                setIsRunning(false); // Pausar el juego al ir a configuración
+                                navigateToPage('setupGame');
+                            }}
+                            className="bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded-lg text-sm shadow-md transition duration-200"
+                            title="Configuración del Partido"
+                        >
+                            {/* Vertical Ellipsis Icon (SVG) */}
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 inline-block" viewBox="0 0 24 24" fill="currentColor">
+                                <circle cx="12" cy="5" r="2" />
+                                <circle cx="12" cy="12" r="2" />
+                                <circle cx="12" cy="19" r="2" />
+                            </svg>
+                        </button>
+                        {/* NUEVO: Botón para ver la plantilla */}
+                        <button
+                            onClick={() => setShowRosterViewModal(true)}
+                            className="bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded-lg text-sm shadow-md transition duration-200"
+                            title="Ver Plantilla Completa"
+                        >
+                            {/* Users Icon (SVG) - from Phosphor Icons for example, or a simple text */}
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 inline-block" viewBox="0 0 256 256" fill="currentColor">
+                                <path d="M234.33,210A128.1,128.1,0,0,0,128,184c-43.23,0-81.33,21.49-106.33,54a8,8,0,0,1-14-5.32c.5-62.59,51.56-113.33,115.66-113.33S249.83,142.09,250.33,204.68a8,8,0,0,1-14,5.32ZM128,144a48,48,0,1,0-48-48A48,48,0,0,0,128,144Z"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    {/* El temporizador se muestra aquí como título principal, centrado en la columna del medio */}
+                    <div className="col-span-1 sm:col-span-1 text-5xl font-extrabold bg-gray-800 py-3 px-6 rounded-lg shadow-inner text-center text-white justify-self-center w-full sm:w-auto"> {/* Added w-full sm:w-auto for responsiveness */}
                         {formatTime(timer)}
+                    </div>
+                    {/* Display de Cuartos */}
+                    <div className="text-xl font-bold text-gray-300 justify-self-center sm:justify-self-end"> {/* Centered on mobile, end on sm+ */}
+                        Cuarto: {currentQuarter}/{totalQuarters}
                     </div>
                 </div>
 
@@ -603,36 +1137,32 @@ function App() {
                 <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4 mb-6">
                     <button
                         onClick={() => setIsRunning(!isRunning)}
-                        className={`py-2 px-6 rounded-lg font-bold text-lg shadow-lg transition duration-200 ${
+                        className={`py-2 px-6 rounded-lg font-bold text-lg shadow-lg transition duration-200 w-full sm:w-auto ${ /* Added w-full sm:w-auto */
                             isRunning ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-green-600 hover:bg-green-700'
                         }`}
                     >
                         {isRunning ? 'Pausar' : 'Iniciar'}
                     </button>
                     <button
-                        onClick={resetGame}
-                        className="bg-red-600 hover:bg-red-700 text-white py-2 px-6 rounded-lg font-bold text-lg shadow-lg transition duration-200"
+                        onClick={localResetGame} // Llama a la función de App para reiniciar el timer
+                        className="bg-red-600 hover:bg-red-700 text-white py-2 px-6 rounded-lg font-bold text-lg shadow-lg transition duration-200 w-full sm:w-auto" /* Added w-full sm:w-auto */
                     >
                         Reiniciar
                     </button>
                     <button
-                        onClick={handleEndGame}
-                        className="bg-purple-600 hover:bg-purple-700 text-white py-2 px-6 rounded-lg font-bold text-lg shadow-lg transition duration-200"
+                        onClick={handleNextQuarter}
+                        className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-lg font-bold text-lg shadow-lg transition duration-200 w-full sm:w-auto" /* Added w-full sm:w-auto */
                     >
-                        Finalizar Partido
+                        {currentQuarter < totalQuarters ? 'Siguiente Cuarto' : 'Finalizar Partido'}
                     </button>
-                </div>
-
-                {/* Botón de Pantalla Completa */}
-                <div className="flex justify-center mb-6">
+                    {/* NUEVO: Botón para terminar el partido en cualquier momento */}
                     <button
-                        onClick={toggleFullScreen}
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition duration-200 text-sm"
+                        onClick={onEndGame}
+                        className="bg-purple-600 hover:bg-purple-700 text-white py-2 px-6 rounded-lg font-bold text-lg shadow-lg transition duration-200 w-full sm:w-auto" /* Added w-full sm:w-auto */
                     >
-                        {isFullScreen ? 'Salir de Pantalla Completa' : 'Pantalla Completa'}
+                        Terminar Partido Ahora
                     </button>
                 </div>
-
 
                 {/* Mensaje de tiempo finalizado */}
                 {timeUpMessage && (
@@ -641,18 +1171,24 @@ function App() {
                     </div>
                 )}
 
-                {/* Marcador */}
-                <div className="flex justify-around items-center bg-gray-800 p-4 rounded-lg shadow-xl mb-6">
-                    <h3 className="text-2xl font-bold text-blue-300">{currentTeamA.name}: {currentScoreA}</h3>
-                    <span className="text-3xl font-extrabold text-white mx-4">-</span>
-                    <h3 className="text-2xl font-bold text-red-300">{currentTeamB.name}: {currentScoreB}</h3>
+                {/* Marcador y Faltas Totales - REDUCIDO EL TAMAÑO */}
+                <div className="flex justify-around items-center bg-gray-800 p-3 rounded-lg shadow-xl mb-6"> {/* p-4 changed to p-3 */}
+                    <div className="flex flex-col items-center">
+                        <h3 className="text-xl font-bold text-blue-300">{teamA.name}: {currentScoreA}</h3> {/* text-2xl changed to text-xl */}
+                        <p className="text-sm text-gray-400">Faltas: {currentQuarterFoulsA}</p> {/* Muestra faltas del cuarto actual */}
+                    </div>
+                    <span className="text-2xl font-extrabold text-white mx-2">-</span> {/* text-3xl changed to text-2xl, mx-4 to mx-2 */}
+                    <div className="flex flex-col items-center">
+                        <h3 className="text-xl font-bold text-red-300">{teamB.name}: {currentScoreB}</h3> {/* text-2xl changed to text-xl */}
+                        <p className="text-sm text-gray-400">Faltas: {currentQuarterFoulsB}</p> {/* Muestra faltas del cuarto actual */}
+                    </div>
                 </div>
 
-                {/* Listas de jugadores de ambos equipos - FORZADO A HORIZONTAL SIEMPRE */}
-                {/* Se ha ajustado el contenedor para forzar el layout horizontal y permitir el scroll */}
-                <div className="flex flex-nowrap overflow-x-auto pb-4 -mx-4 px-4">
+                {/* MODIFICADO: Listas de jugadores de ambos equipos - Adaptable a móvil y escritorio */}
+                {/* Cambiado a 'flex' para que siempre estén lado a lado, y 'w-1/2' para que cada uno ocupe la mitad */}
+                <div className="flex space-x-6">
                     {/* Equipo Local */}
-                    <div className="flex-shrink-0 min-w-[350px] bg-gray-800 p-4 rounded-lg shadow-lg mr-6">
+                    <div className="w-1/2 bg-gray-800 p-4 rounded-lg shadow-lg">
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="text-2xl font-bold text-blue-400">{teamA.name}</h3>
                             <div className="flex space-x-2">
@@ -666,7 +1202,13 @@ function App() {
                                     <span className="mr-1">↩️</span> Deshacer
                                 </button>
                                 <button
-                                    onClick={() => setShowRosterSelectionModalForTeam(teamA.name)}
+                                    onClick={() => {
+                                        if (allRosterPlayers.length === 0) {
+                                            addGenericPlayerToTeamLocal(teamA.name);
+                                        } else {
+                                            setShowRosterSelectionModalForTeam(teamA.name);
+                                        }
+                                    }}
                                     className="bg-blue-500 hover:bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold shadow-md transition duration-200"
                                     title="Añadir Jugador de Plantilla"
                                 >
@@ -675,85 +1217,26 @@ function App() {
                             </div>
                         </div>
                         <div className="space-y-4">
-                            {teamA.players.map(player => {
-                                const fieldGoalMade = player.made2pt + player.made3pt;
-                                const fieldGoalAttempts = (player.made2pt + player.missed2pt) + (player.made3pt + player.missed3pt);
-                                const fieldGoalPercentageDisplay = fieldGoalAttempts > 0 ? ((fieldGoalMade / fieldGoalAttempts) * 100).toFixed(1) : '0.0';
-
-                                return (
-                                    <div
-                                        key={player.id}
-                                        // Pasar playerId y teamId al modal
-                                        onClick={isRunning ? () => setShowPlayerStatsModal({ playerId: player.id, teamId: teamA.name }) : undefined}
-                                        className={`
-                                            bg-gray-600 p-3 rounded-lg shadow-md flex flex-col gap-2 transition duration-200 ease-in-out
-                                            ${isRunning ? 'cursor-pointer hover:bg-gray-500' : 'cursor-default'}
-                                            sm:flex-row sm:items-center sm:justify-between // Contenedor principal del jugador
-                                        `}
-                                    >
-                                        {!isRunning && (
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    removePlayer(teamA.name, player.id);
-                                                }}
-                                                className="rounded-full bg-red-500 hover:bg-red-600 text-white w-7 h-7 flex items-center justify-center text-sm font-bold transition duration-200 flex-shrink-0 shadow-sm"
-                                                title="Eliminar Jugador del Partido"
-                                            >
-                                                -
-                                            </button>
-                                        )}
-
-                                        <div className="
-                                            flex flex-col items-center w-full gap-2
-                                            sm:flex-row sm:justify-between sm:w-auto sm:flex-grow
-                                        ">
-                                            {/* Nombre y Número del Jugador */}
-                                            <div className="flex items-center gap-1 w-full text-center sm:w-auto sm:text-left justify-center sm:justify-start">
-                                                <span className="text-sm text-gray-300">#</span>
-                                                <span className="text-base font-semibold text-white">{player.jersey}</span>
-                                                <input
-                                                    type="text"
-                                                    value={player.name}
-                                                    onChange={(e) => handlePlayerNameChange(teamA.name, player.id, e.target.value)}
-                                                    readOnly={isRunning}
-                                                    onClick={(e) => { e.stopPropagation(); }} // Stop propagation to prevent modal from opening when editing name
-                                                    className={`
-                                                        text-base font-semibold text-white w-full text-center bg-gray-700 p-1 rounded-md
-                                                        focus:outline-none focus:ring-2 focus:ring-white min-w-0 flex-grow
-                                                        ${isRunning ? 'cursor-pointer opacity-90' : ''}
-                                                        sm:w-auto sm:text-left
-                                                    `}
-                                                />
-                                            </div>
-
-                                            {/* Estadísticas del Jugador: Puntos, Faltas, % Tiro Campo - REVISADO */}
-                                            <div className="
-                                                flex flex-row justify-around w-full gap-x-1 items-center
-                                                sm:justify-center sm:space-x-3 sm:w-auto
-                                            ">
-                                                <div className="flex flex-col items-center justify-center min-w-[35px]">
-                                                    <span className="text-xs text-blue-300 sm:text-sm">Pts:</span>
-                                                    <span className="text-lg font-bold text-blue-400 sm:text-xl">{player.score}</span>
-                                                </div>
-                                                <div className="flex flex-col items-center justify-center min-w-[35px]">
-                                                    <span className="text-xs text-red-300 sm:text-sm">Flt:</span>
-                                                    <span className="text-lg font-bold text-red-400 sm:text-xl">{player.fouls}</span>
-                                                </div>
-                                                <div className="flex flex-col items-center justify-center min-w-[70px]">
-                                                    <span className="text-xs text-purple-300 sm:text-sm">TC%:</span>
-                                                    <span className="text-lg font-bold text-purple-400 sm:text-xl">{fieldGoalPercentageDisplay}%</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                );
-                            })}
+                            {teamA.players.map(player => (
+                                <PlayerRow
+                                    key={player.id}
+                                    player={player}
+                                    teamId={teamA.name}
+                                    isRunning={isRunning}
+                                    updatePlayerStat={updatePlayerStat}
+                                    removePlayer={removePlayer}
+                                    handlePlayerNameChange={handlePlayerNameChange}
+                                    handlePlayerPressStart={handlePlayerPressStart}
+                                    handlePlayerPressEnd={handlePlayerPressEnd}
+                                    pressTimerId={pressTimerId}
+                                    setShowPlayerStatsModal={setShowPlayerStatsModal}
+                                />
+                            ))}
                         </div>
                     </div>
 
-                    {/* Equipo Visitante - Similar al Local */}
-                    <div className="flex-shrink-0 min-w-[350px] bg-gray-800 p-4 rounded-lg shadow-lg">
+                    {/* Equipo Visitante */}
+                    <div className="w-1/2 bg-gray-800 p-4 rounded-lg shadow-lg">
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="text-2xl font-bold text-red-400">{teamB.name}</h3>
                             <div className="flex space-x-2">
@@ -767,7 +1250,13 @@ function App() {
                                     <span className="mr-1">↩️</span> Deshacer
                                 </button>
                                 <button
-                                    onClick={() => setShowRosterSelectionModalForTeam(teamB.name)}
+                                    onClick={() => {
+                                        if (allRosterPlayers.length === 0) {
+                                            addGenericPlayerToTeamLocal(teamB.name);
+                                        } else {
+                                            setShowRosterSelectionModalForTeam(teamB.name);
+                                        }
+                                    }}
                                     className="bg-red-500 hover:bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold shadow-md transition duration-200"
                                     title="Añadir Jugador de Plantilla"
                                 >
@@ -776,80 +1265,21 @@ function App() {
                             </div>
                         </div>
                         <div className="space-y-4">
-                            {teamB.players.map(player => {
-                                const fieldGoalMade = player.made2pt + player.made3pt;
-                                const fieldGoalAttempts = (player.made2pt + player.missed2pt) + (player.made3pt + player.missed3pt);
-                                const fieldGoalPercentageDisplay = fieldGoalAttempts > 0 ? ((fieldGoalMade / fieldGoalAttempts) * 100).toFixed(1) : '0.0';
-
-                                return (
-                                    <div
-                                        key={player.id}
-                                        // Pasar playerId y teamId al modal
-                                        onClick={isRunning ? () => setShowPlayerStatsModal({ playerId: player.id, teamId: teamB.name }) : undefined}
-                                        className={`
-                                            bg-gray-600 p-3 rounded-lg shadow-md flex flex-col gap-2 transition duration-200 ease-in-out
-                                            ${isRunning ? 'cursor-pointer hover:bg-gray-500' : 'cursor-default'}
-                                            sm:flex-row sm:items-center sm:justify-between // Contenedor principal del jugador
-                                        `}
-                                    >
-                                        {!isRunning && (
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    removePlayer(teamB.name, player.id);
-                                                }}
-                                                className="rounded-full bg-red-500 hover:bg-red-600 text-white w-7 h-7 flex items-center justify-center text-sm font-bold transition duration-200 flex-shrink-0 shadow-sm"
-                                                title="Eliminar Jugador"
-                                            >
-                                                -
-                                            </button>
-                                        )}
-
-                                        <div className="
-                                            flex flex-col items-center w-full gap-2
-                                            sm:flex-row sm:justify-between sm:w-auto sm:flex-grow
-                                        ">
-                                            {/* Nombre y Número del Jugador */}
-                                            <div className="flex items-center gap-1 w-full text-center sm:w-auto sm:text-left justify-center sm:justify-start">
-                                                <span className="text-sm text-gray-300">#</span>
-                                                <span className="text-base font-semibold text-white">{player.jersey}</span>
-                                                <input
-                                                    type="text"
-                                                    value={player.name}
-                                                    onChange={(e) => handlePlayerNameChange(teamB.name, player.id, e.target.value)}
-                                                    readOnly={isRunning}
-                                                    onClick={(e) => { e.stopPropagation(); }} // Stop propagation to prevent modal from opening when editing name
-                                                    className={`
-                                                        text-base font-semibold text-white w-full text-center bg-gray-700 p-1 rounded-md
-                                                        focus:outline-none focus:ring-2 focus:ring-white min-w-0 flex-grow
-                                                        ${isRunning ? 'cursor-pointer opacity-90' : ''}
-                                                        sm:w-auto sm:text-left
-                                                    `}
-                                                />
-                                            </div>
-
-                                            {/* Estadísticas del Jugador: Puntos, Faltas, % Tiro Campo - REVISADO */}
-                                            <div className="
-                                                flex flex-row justify-around w-full gap-x-1 items-center
-                                                sm:justify-center sm:space-x-3 sm:w-auto
-                                            ">
-                                                <div className="flex flex-col items-center justify-center min-w-[35px]">
-                                                    <span className="text-xs text-blue-300 sm:text-sm">Pts:</span>
-                                                    <span className="text-lg font-bold text-blue-400 sm:text-xl">{player.score}</span>
-                                                </div>
-                                                <div className="flex flex-col items-center justify-center min-w-[35px]">
-                                                    <span className="text-xs text-red-300 sm:text-sm">Flt:</span>
-                                                    <span className="text-lg font-bold text-red-400 sm:text-xl">{player.fouls}</span>
-                                                </div>
-                                                <div className="flex flex-col items-center justify-center min-w-[70px]">
-                                                    <span className="text-xs text-purple-300 sm:text-sm">TC%:</span>
-                                                    <span className="text-lg font-bold text-purple-400 sm:text-xl">{fieldGoalPercentageDisplay}%</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                );
-                            })}
+                            {teamB.players.map(player => (
+                                <PlayerRow
+                                    key={player.id}
+                                    player={player}
+                                    teamId={teamB.name}
+                                    isRunning={isRunning}
+                                    updatePlayerStat={updatePlayerStat}
+                                    removePlayer={removePlayer}
+                                    handlePlayerNameChange={handlePlayerNameChange}
+                                    handlePlayerPressStart={handlePlayerPressStart}
+                                    handlePlayerPressEnd={handlePlayerPressEnd}
+                                    pressTimerId={pressTimerId}
+                                    setShowPlayerStatsModal={setShowPlayerStatsModal}
+                                />
+                            ))}
                         </div>
                     </div>
                 </div>
@@ -857,33 +1287,55 @@ function App() {
                 {/* Modal de estadísticas del jugador */}
                 {showPlayerStatsModal && (
                     <PlayerStatsModal
+                        key={`${showPlayerStatsModal.playerId}-${showPlayerStatsModal.teamId}`}
                         playerId={showPlayerStatsModal.playerId}
-                        teamId={showPlayerStatsModal.teamId} // Pasa el teamId directamente
+                        teamId={showPlayerStatsModal.teamId}
                         teamA={teamA}
                         teamB={teamB}
                         updatePlayerStat={updatePlayerStat}
                         onClose={() => setShowPlayerStatsModal(null)}
+                        isLongPressOpen={showPlayerStatsModal.isLongPress}
                     />
                 )}
 
-                {/* Modal de selección de jugador de la plantilla */}
+                {/* MODIFICADO: Modal de selección de jugador de la lista global */}
                 {showRosterSelectionModalForTeam && (
                     <PlayerSelectionModal
-                        rosterPlayers={rosterPlayers}
+                        rosterPlayers={allRosterPlayers}
                         currentTeamPlayers={showRosterSelectionModalForTeam === teamA.name ? teamA.players : teamB.players}
                         onSelectPlayer={(player) => addPlayerToTeamFromRoster(showRosterSelectionModalForTeam, player)}
                         onClose={() => setShowRosterSelectionModalForTeam(null)}
                     />
                 )}
+
+                {/* NUEVO: Modal para ver y gestionar la plantilla completa */}
+                {showRosterViewModal && (
+                    <RosterViewModal
+                        allPlayers={allRosterPlayers}
+                        addPlayerToGlobalRoster={addPlayerToGlobalRoster}
+                        updateGlobalPlayer={updateGlobalPlayer}
+                        removeGlobalPlayer={removeGlobalPlayer}
+                        setAlertMessage={setAlertMessage}
+                        onClose={() => setShowRosterViewModal(false)}
+                    />
+                )}
             </div>
         );
-    };
+    });
 
     // Componente del modal de estadísticas del jugador
-    const PlayerStatsModal = ({ playerId, teamId, teamA, teamB, updatePlayerStat, onClose }) => {
+    const PlayerStatsModal = ({ playerId, teamId, teamA, teamB, updatePlayerStat, onClose, isLongPressOpen }) => {
         // Encuentra el jugador usando el teamId y playerId pasados
         const currentTeam = teamId === teamA.name ? teamA : teamB;
         const player = currentTeam.players.find(p => p.id === playerId);
+
+        // Estado para el modo de múltiples toques (controlado por isLongPressOpen)
+        const [isMultiTapMode, setIsMultiTapMode] = useState(isLongPressOpen);
+
+        // Reiniciar modo cuando el modal se abre o cambia el modo de apertura
+        useEffect(() => {
+            setIsMultiTapMode(isLongPressOpen);
+        }, [playerId, teamId, isLongPressOpen]); // Dependencias: jugador, equipo y cómo se abrió
 
         if (!player) {
             console.error(`Error: Jugador con ID ${playerId} no encontrado en el equipo ${teamId}.`);
@@ -894,7 +1346,11 @@ function App() {
         // Función local para manejar la actualización de estadísticas
         const handleStatUpdate = (stat, value) => {
             updatePlayerStat(teamId, player.id, stat, value);
-            onClose(); // Ahora sí se cierra automáticamente después de cada acción
+
+            // Solo cerrar si NO estamos en modo de múltiples toques (long press)
+            if (!isMultiTapMode) {
+                onClose();
+            }
         };
 
         // Cálculos para porcentajes de tiro, con manejo de división por cero
@@ -916,7 +1372,7 @@ function App() {
         return (
             <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
                 {/* Ajustado: w-full h-full para ocupar casi toda la pantalla, y max-w-screen-lg para limitar el ancho en pantallas muy grandes */}
-                <div className="bg-gray-800 p-6 rounded-lg shadow-xl w-full h-full max-w-screen-lg border border-gray-700 flex flex-col">
+                <div className="bg-gray-800 p-6 rounded-lg shadow-xl w-full h-full max-w-screen-lg border border-gray-700 flex flex-col relative"> {/* Added relative for absolute positioning of close button */}
                     <div className="flex justify-between items-center mb-6"> {/* Aumentado mb-4 a mb-6 */}
                         <h3 className="text-3xl font-bold text-white"> {/* Aumentado text-2xl a text-3xl */}
                             {player.name} <span className="text-gray-400 text-xl">#{player.jersey}</span> {/* Aumentado text-lg a text-xl */}
@@ -931,45 +1387,99 @@ function App() {
 
                     {/* Modificado: Grid para las estadísticas, más horizontal en pantallas grandes */}
                     {/* Aumentado gap-3 a gap-4, y p-2 a p-3 para los contenedores de estadísticas */}
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 flex-grow overflow-y-auto">
-                        {/* Puntos de campo */}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 flex-grow overflow-y-auto pb-16"> {/* Added pb-16 for space for bottom button */}
+                        {/* 2 Puntos - Aciertos */}
                         <div className="bg-gray-700 p-3 rounded-md flex flex-col items-center justify-center">
-                            <span className="text-blue-400 text-sm text-center mb-2">2 Puntos</span> {/* Aumentado mb-1 a mb-2 */}
-                            <div className="flex space-x-2"> {/* Aumentado space-x-1 a space-x-2 */}
-                                <button onClick={() => handleStatUpdate('2PM', 1)} className="bg-blue-600 hover:bg-blue-700 text-white rounded-md px-4 py-2 text-base font-bold">+2PM</button> {/* Aumentado px-2 py-1 text-xs a px-4 py-2 text-base */}
-                                <button onClick={() => handleStatUpdate('2PTM', 1)} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-4 py-2 text-base font-bold flex items-center justify-center">
-                                    <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"></path>
-                                    </svg>
-                                    M
+                            <span className="text-blue-400 text-sm text-center mb-2">2 Puntos (Aciertos)</span>
+                            <div className="flex space-x-2 items-center">
+                                <button onClick={() => handleStatUpdate('2PM', 1)} className="bg-green-600 hover:bg-green-700 text-white rounded-md px-4 py-2 text-base font-bold">
+                                    +
+                                </button>
+                                <span className="bg-gray-600 text-white rounded-md px-3 py-2 text-lg font-bold min-w-[40px] text-center">
+                                    {player.made2pt}
+                                </span>
+                                <button onClick={() => handleStatUpdate('2PM', -1)} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-4 py-2 text-base font-bold">
+                                    -
                                 </button>
                             </div>
                         </div>
 
-                        {/* Puntos de 3 */}
+                        {/* 2 Puntos - Fallos */}
                         <div className="bg-gray-700 p-3 rounded-md flex flex-col items-center justify-center">
-                            <span className="text-green-400 text-sm text-center mb-2">3 Puntos</span>
-                            <div className="flex space-x-2">
-                                <button onClick={() => handleStatUpdate('3PM', 1)} className="bg-green-600 hover:bg-green-700 text-white rounded-md px-4 py-2 text-base font-bold">+3PM</button>
-                                <button onClick={() => handleStatUpdate('3PTM', 1)} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-4 py-2 text-base font-bold flex items-center justify-center">
-                                    <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"></path>
-                                    </svg>
-                                    M
+                            <span className="text-red-400 text-sm text-center mb-2">2 Puntos (Fallos)</span>
+                            <div className="flex space-x-2 items-center">
+                                <button onClick={() => handleStatUpdate('2PTM', 1)} className="bg-green-600 hover:bg-green-700 text-white rounded-md px-4 py-2 text-base font-bold">
+                                    +
+                                </button>
+                                <span className="bg-gray-600 text-white rounded-md px-3 py-2 text-lg font-bold min-w-[40px] text-center">
+                                    {player.missed2pt}
+                                </span>
+                                <button onClick={() => handleStatUpdate('2PTM', -1)} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-4 py-2 text-base font-bold">
+                                    -
                                 </button>
                             </div>
                         </div>
 
-                        {/* Tiros Libres */}
+                        {/* 3 Puntos - Aciertos */}
                         <div className="bg-gray-700 p-3 rounded-md flex flex-col items-center justify-center">
-                            <span className="text-yellow-400 text-sm text-center mb-2">T. Libres</span>
-                            <div className="flex space-x-2">
-                                <button onClick={() => handleStatUpdate('FTM', 1)} className="bg-yellow-600 hover:bg-yellow-700 text-white rounded-md px-4 py-2 text-base font-bold">+FTM</button>
-                                <button onClick={() => handleStatUpdate('FTT', 1)} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-4 py-2 text-base font-bold flex items-center justify-center">
-                                    <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"></path>
-                                    </svg>
-                                    T
+                            <span className="text-green-400 text-sm text-center mb-2">3 Puntos (Aciertos)</span>
+                            <div className="flex space-x-2 items-center">
+                                <button onClick={() => handleStatUpdate('3PM', 1)} className="bg-green-600 hover:bg-green-700 text-white rounded-md px-4 py-2 text-base font-bold">
+                                    +
+                                </button>
+                                <span className="bg-gray-600 text-white rounded-md px-3 py-2 text-lg font-bold min-w-[40px] text-center">
+                                    {player.made3pt}
+                                </span>
+                                <button onClick={() => handleStatUpdate('3PM', -1)} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-4 py-2 text-base font-bold">
+                                    -
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* 3 Puntos - Fallos */}
+                        <div className="bg-gray-700 p-3 rounded-md flex flex-col items-center justify-center">
+                            <span className="text-red-400 text-sm text-center mb-2">3 Puntos (Fallos)</span>
+                            <div className="flex space-x-2 items-center">
+                                <button onClick={() => handleStatUpdate('3PTM', 1)} className="bg-green-600 hover:bg-green-700 text-white rounded-md px-4 py-2 text-base font-bold">
+                                    +
+                                </button>
+                                <span className="bg-gray-600 text-white rounded-md px-3 py-2 text-lg font-bold min-w-[40px] text-center">
+                                    {player.missed3pt}
+                                </span>
+                                <button onClick={() => handleStatUpdate('3PTM', -1)} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-4 py-2 text-base font-bold">
+                                    -
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Tiros Libres - Aciertos */}
+                        <div className="bg-gray-700 p-3 rounded-md flex flex-col items-center justify-center">
+                            <span className="text-yellow-400 text-sm text-center mb-2">T. Libres (Aciertos)</span>
+                            <div className="flex space-x-2 items-center">
+                                <button onClick={() => handleStatUpdate('FTM', 1)} className="bg-green-600 hover:bg-green-700 text-white rounded-md px-4 py-2 text-base font-bold">
+                                    +
+                                </button>
+                                <span className="bg-gray-600 text-white rounded-md px-3 py-2 text-lg font-bold min-w-[40px] text-center">
+                                    {player.madeFT}
+                                </span>
+                                <button onClick={() => handleStatUpdate('FTM', -1)} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-4 py-2 text-base font-bold">
+                                    -
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Tiros Libres - Fallos */}
+                        <div className="bg-gray-700 p-3 rounded-md flex flex-col items-center justify-center">
+                            <span className="text-red-400 text-sm text-center mb-2">T. Libres (Fallos)</span>
+                            <div className="flex space-x-2 items-center">
+                                <button onClick={() => handleStatUpdate('FTT', 1)} className="bg-green-600 hover:bg-green-700 text-white rounded-md px-4 py-2 text-base font-bold">
+                                    +
+                                </button>
+                                <span className="bg-gray-600 text-white rounded-md px-3 py-2 text-lg font-bold min-w-[40px] text-center">
+                                    {player.missedFT}
+                                </span>
+                                <button onClick={() => handleStatUpdate('FTT', -1)} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-4 py-2 text-base font-bold">
+                                    -
                                 </button>
                             </div>
                         </div>
@@ -977,43 +1487,111 @@ function App() {
                         {/* Rebotes */}
                         <div className="bg-gray-700 p-3 rounded-md flex flex-col items-center justify-center">
                             <span className="text-purple-400 text-sm text-center mb-2">Rebotes</span>
-                            <button onClick={() => handleStatUpdate('REB', 1)} className="bg-purple-600 hover:bg-purple-700 text-white rounded-md px-4 py-2 text-base font-bold">+REB</button>
+                            <div className="flex space-x-2 items-center">
+                                <button onClick={() => handleStatUpdate('REB', 1)} className="bg-green-600 hover:bg-green-700 text-white rounded-md px-4 py-2 text-base font-bold">
+                                    +
+                                </button>
+                                <span className="bg-gray-600 text-white rounded-md px-3 py-2 text-lg font-bold min-w-[40px] text-center">
+                                    {player.rebounds}
+                                </span>
+                                <button onClick={() => handleStatUpdate('REB', -1)} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-4 py-2 text-base font-bold">
+                                    -
+                                </button>
+                            </div>
                         </div>
                         {/* Asistencias */}
                         <div className="bg-gray-700 p-3 rounded-md flex flex-col items-center justify-center">
                             <span className="text-pink-400 text-sm text-center mb-2">Asistencias</span>
-                            <button onClick={() => handleStatUpdate('AST', 1)} className="bg-pink-600 hover:bg-pink-700 text-white rounded-md px-4 py-2 text-base font-bold">+AST</button>
+                            <div className="flex space-x-2 items-center">
+                                <button onClick={() => handleStatUpdate('AST', 1)} className="bg-green-600 hover:bg-green-700 text-white rounded-md px-4 py-2 text-base font-bold">
+                                    +
+                                </button>
+                                <span className="bg-gray-600 text-white rounded-md px-3 py-2 text-lg font-bold min-w-[40px] text-center">
+                                    {player.assists}
+                                </span>
+                                <button onClick={() => handleStatUpdate('AST', -1)} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-4 py-2 text-base font-bold">
+                                    -
+                                </button>
+                            </div>
                         </div>
                         {/* Robos */}
                         <div className="bg-gray-700 p-3 rounded-md flex flex-col items-center justify-center">
                             <span className="text-teal-400 text-sm text-center mb-2">Robos</span>
-                            <button onClick={() => handleStatUpdate('STL', 1)} className="bg-teal-600 hover:bg-teal-700 text-white rounded-md px-4 py-2 text-base font-bold">+STL</button>
+                            <div className="flex space-x-2 items-center">
+                                <button onClick={() => handleStatUpdate('STL', 1)} className="bg-green-600 hover:bg-green-700 text-white rounded-md px-4 py-2 text-base font-bold">
+                                    +
+                                </button>
+                                <span className="bg-gray-600 text-white rounded-md px-3 py-2 text-lg font-bold min-w-[40px] text-center">
+                                    {player.steals}
+                                </span>
+                                <button onClick={() => handleStatUpdate('STL', -1)} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-4 py-2 text-base font-bold">
+                                    -
+                                </button>
+                            </div>
                         </div>
                         {/* Bloqueos */}
                         <div className="bg-gray-700 p-3 rounded-md flex flex-col items-center justify-center">
                             <span className="text-indigo-400 text-sm text-center mb-2">Bloqueos</span>
-                            <button onClick={() => handleStatUpdate('BLK', 1)} className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-md px-4 py-2 text-base font-bold">+BLK</button>
+                            <div className="flex space-x-2 items-center">
+                                <button onClick={() => handleStatUpdate('BLK', 1)} className="bg-green-600 hover:bg-green-700 text-white rounded-md px-4 py-2 text-base font-bold">
+                                    +
+                                </button>
+                                <span className="bg-gray-600 text-white rounded-md px-3 py-2 text-lg font-bold min-w-[40px] text-center">
+                                    {player.blocks}
+                                </span>
+                                <button onClick={() => handleStatUpdate('BLK', -1)} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-4 py-2 text-base font-bold">
+                                    -
+                                </button>
+                            </div>
                         </div>
                         {/* Pérdidas */}
                         <div className="bg-gray-700 p-3 rounded-md flex flex-col items-center justify-center">
                             <span className="text-orange-400 text-sm text-center mb-2">Pérdidas</span>
-                            <button onClick={() => handleStatUpdate('TOV', 1)} className="bg-orange-600 hover:bg-orange-600 text-white rounded-md px-4 py-2 text-base font-bold">+TOV</button>
+                            <div className="flex space-x-2 items-center">
+                                <button onClick={() => handleStatUpdate('TOV', 1)} className="bg-green-600 hover:bg-green-700 text-white rounded-md px-4 py-2 text-base font-bold">
+                                    +
+                                </button>
+                                <span className="bg-gray-600 text-white rounded-md px-3 py-2 text-lg font-bold min-w-[40px] text-center">
+                                    {player.turnovers}
+                                </span>
+                                <button onClick={() => handleStatUpdate('TOV', -1)} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-4 py-2 text-base font-bold">
+                                    -
+                                </button>
+                            </div>
                         </div>
                         {/* Faltas */}
                         <div className="bg-gray-700 p-3 rounded-md flex flex-col items-center justify-center">
                             <span className="text-red-400 text-sm text-center mb-2">Faltas</span>
-                            <button onClick={() => handleStatUpdate('FLT', 1)} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-4 py-2 text-base font-bold">+FLT</button>
+                            <div className="flex space-x-2 items-center">
+                                <button onClick={() => handleStatUpdate('FLT', 1)} className="bg-green-600 hover:bg-green-700 text-white rounded-md px-4 py-2 text-base font-bold">
+                                    +
+                                </button>
+                                <span className="bg-gray-600 text-white rounded-md px-3 py-2 text-lg font-bold min-w-[40px] text-center">
+                                    {player.fouls}
+                                </span>
+                                <button onClick={() => handleStatUpdate('FLT', -1)} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-4 py-2 text-base font-bold">
+                                    -
+                                </button>
+                            </div>
                         </div>
                     </div>
+
+                    {/* Botón de Cierre en la parte inferior derecha */}
+                    <button
+                        onClick={onClose}
+                        className="absolute bottom-4 right-4 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-200"
+                    >
+                        Cerrar
+                    </button>
                 </div>
             </div>
         );
     };
 
-    // Componente del modal de selección de jugador de la plantilla
-    const PlayerSelectionModal = ({ rosterPlayers, currentTeamPlayers, onSelectPlayer, onClose }) => {
+    // Componente del modal de selección de jugador de la lista global
+    const PlayerSelectionModal = useCallback(({ rosterPlayers, currentTeamPlayers, onSelectPlayer, onClose }) => {
         const availablePlayers = rosterPlayers.filter(rosterP =>
-            !currentTeamPlayers.some(teamP => teamP.jersey === rosterP.jersey)
+            !currentTeamPlayers.some(teamP => teamP.id === rosterP.id) // Comparar por ID, no por jersey
         );
 
         return (
@@ -1030,7 +1608,7 @@ function App() {
                     </div>
 
                     {availablePlayers.length === 0 ? (
-                        <p className="text-gray-400">No hay jugadores disponibles en la plantilla para añadir a este equipo. Asegúrate de que no estén ya en el equipo o añade nuevos a la plantilla.</p>
+                        <p className="text-gray-400">No hay jugadores disponibles en la lista para añadir a este equipo. Asegúrate de que no estén ya en el equipo o añade nuevos a la lista.</p>
                     ) : (
                         <div className="space-y-3">
                             {availablePlayers.map(player => (
@@ -1047,11 +1625,216 @@ function App() {
                 </div>
             </div>
         );
+    }, []);
+
+    // NUEVO: Componente para ver y gestionar la plantilla completa (editable)
+    const RosterViewModal = ({ allPlayers, addPlayerToGlobalRoster, updateGlobalPlayer, removeGlobalPlayer, setAlertMessage, onClose }) => {
+        const [newPlayerName, setNewPlayerName] = useState('');
+        const [newPlayerJersey, setNewPlayerJersey] = useState('');
+        const [editingPlayerId, setEditingPlayerId] = useState(null);
+        const [editPlayerName, setEditPlayerName] = useState('');
+        const [editPlayerJersey, setEditPlayerJersey] = useState('');
+        const [confirmDeletePlayerId, setConfirmDeletePlayerId] = useState(null);
+        const [successMessage, setSuccessMessage] = useState('');
+
+        const newPlayerNameInputRef = useRef(null);
+
+        const randomNames = useMemo(() => [
+            "Juan", "María", "Pedro", "Ana", "Luis", "Sofía", "Carlos", "Laura",
+            "Miguel", "Elena", "José", "Isabel", "David", "Carmen", "Javier", "Pilar",
+            "Fernando", "Rosa", "Daniel", "Lucía", "Alejandro", "Martina", "Pablo", "Valeria"
+        ], []);
+
+        const handleAddPlayer = (e) => {
+            e.preventDefault();
+            const nameInput = newPlayerName.trim();
+            let finalName;
+            if (nameInput === '') {
+                finalName = randomNames[Math.floor(Math.random() * randomNames.length)];
+            } else {
+                finalName = nameInput;
+            }
+
+            let jersey = parseInt(newPlayerJersey);
+            if (isNaN(jersey) || jersey <= 0) {
+                const maxJersey = allPlayers.reduce((max, p) => Math.max(max, p.jersey), 0);
+                jersey = maxJersey + 1;
+            } else {
+                if (allPlayers.some(p => p.jersey === jersey)) {
+                    setAlertMessage(`El número de camiseta ${jersey} ya está en uso.`);
+                    return;
+                }
+            }
+            addPlayerToGlobalRoster({ name: finalName, jersey });
+            setNewPlayerName('');
+            setNewPlayerJersey('');
+            setSuccessMessage('Jugador añadido exitosamente.');
+            setTimeout(() => setSuccessMessage(''), 3000);
+
+            if (newPlayerNameInputRef.current) {
+                newPlayerNameInputRef.current.focus();
+            }
+        };
+
+        const handleEditClick = (player) => {
+            setEditingPlayerId(player.id);
+            setEditPlayerName(player.name);
+            setEditPlayerJersey(player.jersey.toString());
+        };
+
+        const handleUpdatePlayer = (e) => {
+            e.preventDefault();
+            if (editPlayerName.trim() === '' || editPlayerJersey.trim() === '') {
+                setAlertMessage('El nombre y número de camiseta no pueden estar vacíos.');
+                return;
+            }
+            const jersey = parseInt(editPlayerJersey);
+            if (isNaN(jersey) || jersey <= 0) {
+                setAlertMessage('El número de camiseta debe ser un número positivo.');
+                return;
+            }
+            const isJerseyTakenByAnotherPlayer = allPlayers.some(p => p.jersey === jersey && p.id !== editingPlayerId);
+            if (isJerseyTakenByAnotherPlayer) {
+                setAlertMessage(`El número de camiseta ${jersey} ya está en uso por otro jugador.`);
+                return;
+            }
+
+            updateGlobalPlayer(editingPlayerId, { name: editPlayerName.trim(), jersey });
+            setEditingPlayerId(null);
+            setEditPlayerName('');
+            setEditPlayerJersey('');
+            setAlertMessage('Jugador actualizado.');
+        };
+
+        const handleDeletePlayerClick = (playerId) => {
+            setConfirmDeletePlayerId(playerId);
+        };
+
+        const confirmDeletePlayer = () => {
+            removeGlobalPlayer(confirmDeletePlayerId);
+            setConfirmDeletePlayerId(null);
+            setAlertMessage('Jugador eliminado.');
+        };
+
+        const cancelDeletePlayer = () => {
+            setConfirmDeletePlayerId(null);
+        };
+
+        return (
+            <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+                <div className="bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-md border border-gray-700 max-h-[90vh] overflow-y-auto flex flex-col">
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-2xl font-bold text-white">Gestionar Plantilla</h3>
+                        <button
+                            onClick={onClose}
+                            className="text-gray-400 hover:text-white text-3xl leading-none"
+                        >
+                            &times;
+                        </button>
+                    </div>
+
+                    {successMessage && (
+                        <div className="bg-green-600 text-white p-3 rounded-md text-center mb-4 animate-fadeInOut">
+                            {successMessage}
+                        </div>
+                    )}
+
+                    {/* Formulario para añadir nuevo jugador */}
+                    <div className="bg-gray-700 p-4 rounded-lg shadow-md mb-4">
+                        <h4 className="text-lg font-bold text-white mb-3">Añadir Nuevo Jugador</h4>
+                        <form onSubmit={handleAddPlayer} className="flex flex-col sm:flex-row gap-3">
+                            <input
+                                type="text"
+                                placeholder="Nombre (opcional)"
+                                value={newPlayerName}
+                                onChange={(e) => setNewPlayerName(e.target.value)}
+                                className="flex-grow bg-gray-600 text-white p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                ref={newPlayerNameInputRef}
+                            />
+                            <input
+                                type="number"
+                                placeholder="Número (opcional)"
+                                value={newPlayerJersey}
+                                onChange={(e) => setNewPlayerJersey(e.target.value)}
+                                className="w-16 sm:w-24 bg-gray-600 text-white p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500" /* MODIFIED: w-16 sm:w-24 */
+                            />
+                            <button
+                                type="submit"
+                                className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-200"
+                            >
+                                Añadir
+                            </button>
+                        </form>
+                    </div>
+
+                    {/* Lista de jugadores */}
+                    <div className="flex-grow overflow-y-auto space-y-3">
+                        {allPlayers.length === 0 ? (
+                            <p className="text-gray-400 text-center mt-4">No hay jugadores en la plantilla.</p>
+                        ) : (
+                            allPlayers.map(player => (
+                                <div
+                                    key={player.id}
+                                    className="bg-gray-700 p-3 rounded-md flex flex-col sm:flex-row items-center justify-between gap-3"
+                                >
+                                    {editingPlayerId === player.id ? (
+                                        <form onSubmit={handleUpdatePlayer} className="flex flex-col sm:flex-row gap-3 w-full">
+                                            <input
+                                                type="text"
+                                                value={editPlayerName}
+                                                onChange={(e) => setEditPlayerName(e.target.value)}
+                                                className="flex-grow bg-gray-600 text-white p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            />
+                                            <input
+                                                type="number"
+                                                value={editPlayerJersey}
+                                                onChange={(e) => setEditPlayerJersey(e.target.value)}
+                                                className="w-16 sm:w-24 bg-gray-600 text-white p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" /* MODIFIED: w-16 sm:w-24 */
+                                            />
+                                            <div className="flex gap-2">
+                                                <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white text-sm py-2 px-3 rounded-md">Guardar</button>
+                                                <button type="button" onClick={() => setEditingPlayerId(null)} className="bg-gray-500 hover:bg-gray-600 text-white text-sm py-2 px-3 rounded-md">Cancelar</button>
+                                            </div>
+                                        </form>
+                                    ) : (
+                                        <>
+                                            <span className="text-lg font-semibold">{player.name} <span className="text-gray-400">#{player.jersey}</span></span>
+                                            <div className="flex space-x-2">
+                                                <button
+                                                    onClick={() => handleEditClick(player)}
+                                                    className="bg-yellow-500 hover:bg-yellow-600 text-white text-sm py-2 px-3 rounded-md"
+                                                >
+                                                    Editar
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeletePlayerClick(player.id)}
+                                                    className="bg-red-500 hover:bg-red-600 text-white text-sm py-2 px-3 rounded-md"
+                                                >
+                                                    Eliminar
+                                                </button>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            ))
+                        )}
+                    </div>
+
+                    {confirmDeletePlayerId && (
+                        <ConfirmDialog
+                            message={`¿Estás seguro de que quieres eliminar a ${allPlayers.find(p => p.id === confirmDeletePlayerId)?.name || 'este jugador'} de la lista?`}
+                            onConfirm={confirmDeletePlayer}
+                            onCancel={cancelDeletePlayer}
+                        />
+                    )}
+                </div>
+            </div>
+        );
     };
 
 
     // Componente para la página de historial
-    const HistoryPage = () => {
+    const HistoryPage = useCallback(() => {
         const [selectedGame, setSelectedGame] = useState(null);
         // Eliminados: analysisLoading, analysisResult, generateAnalysis
 
@@ -1071,7 +1854,8 @@ function App() {
 
             let csvContent = `Detalles del Partido\n`;
             csvContent += `Fecha:,${escapeCsv(game.date)}\n`;
-            csvContent += `Duración:,${escapeCsv(game.duration)}\n\n`;
+            csvContent += `Duración:,${escapeCsv(game.duration)}\n`;
+            csvContent += `Cuartos Jugados:,${escapeCsv(game.quartersPlayed)}/${escapeCsv(game.totalQuarters)}\n\n`; // Añadir cuartos
 
             // Encabezados para las estadísticas de los jugadores
             const playerHeaders = [
@@ -1117,11 +1901,11 @@ function App() {
             };
 
             // Añadir datos del equipo A
-            csvContent += `\n${escapeCsv(game.teamA.name)} - Puntuación: ${game.teamA.score}\n`;
+            csvContent += `\n${escapeCsv(game.teamA.name)} - Puntuación: ${game.teamA.score} | Faltas Totales: ${game.teamA.totalFouls}\n`;
             addPlayerRows(game.teamA.name, game.teamA.players);
 
             // Añadir datos del equipo B
-            csvContent += `\n${escapeCsv(game.teamB.name)} - Puntuación: ${game.teamB.score}\n`;
+            csvContent += `\n${escapeCsv(game.teamB.name)} - Puntuación: ${game.teamB.score} | Faltas Totales: ${game.teamB.totalFouls}\n`;
             addPlayerRows(game.teamB.name, game.teamB.players);
 
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -1141,12 +1925,12 @@ function App() {
             <div className="min-h-screen text-white p-4">
                 <div className="flex justify-between items-center mb-6">
                     <button
-                        onClick={() => setPage('home')}
+                        onClick={() => navigateToPage('home')}
                         className="bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded-lg text-sm shadow-md transition duration-200"
                     >
                         &larr; Volver
                     </button>
-                    <h2 className="text-3xl font-bold text-green-400">Historial de Partidos</h2>
+                    <h2 className="text-3xl font-bold text-white">Historial de Partidos</h2> {/* Título en blanco */}
                 </div>
 
                 {history.length === 0 ? (
@@ -1164,7 +1948,7 @@ function App() {
                                 <h3 className="text-xl font-bold text-white">
                                     {game.teamA.name} {game.teamA.score} - {game.teamB.name} {game.teamB.score}
                                 </h3>
-                                <p className="text-gray-400 text-sm">Fecha: {game.date} | Duración: {game.duration}</p>
+                                <p className="text-gray-400 text-sm">Fecha: {game.date} | Duración: {game.duration} | Cuartos: {game.quartersPlayed}/{game.totalQuarters}</p>
                             </div>
                         ))}
                     </div>
@@ -1184,12 +1968,50 @@ function App() {
                             </div>
 
                             <p className="text-gray-300 mb-2">Fecha: {selectedGame.date}</p>
-                            <p className="text-gray-300 mb-4">Duración: {selectedGame.duration}</p>
+                            <p className="text-gray-300 mb-2">Duración: {selectedGame.duration}</p>
+                            <p className="text-gray-300 mb-4">Cuartos: {selectedGame.quartersPlayed}/{selectedGame.totalQuarters}</p>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                            {/* Tabla de Puntos por Cuarto */}
+                            {selectedGame.teamA.quarterScores && selectedGame.teamA.quarterScores.length > 0 && (
+                                <div className="mt-6 mb-4">
+                                    <h4 className="text-xl font-bold text-white mb-2">Puntos por Cuarto:</h4>
+                                    <div className="overflow-x-auto">
+                                        <table className="min-w-full bg-gray-700 rounded-lg overflow-hidden shadow-md text-sm">
+                                            <thead className="bg-gray-600 text-gray-200 uppercase text-xs leading-normal">
+                                                <tr>
+                                                    <th className="py-3 px-2 text-left">Equipo</th>
+                                                    {Array.from({ length: selectedGame.totalQuarters }).map((_, index) => (
+                                                        <th key={index} className="py-3 px-2 text-center">C{index + 1}</th>
+                                                    ))}
+                                                </tr>
+                                            </thead>
+                                            <tbody className="text-gray-300 text-sm font-light">
+                                                <tr className="border-b border-gray-600 hover:bg-gray-600">
+                                                    <td className="py-3 px-2 text-left whitespace-nowrap">{selectedGame.teamA.name}</td>
+                                                    {Array.from({ length: selectedGame.totalQuarters }).map((_, index) => (
+                                                        <td key={`teamA-q-${index}`} className="py-3 px-2 text-center">
+                                                            {selectedGame.teamA.quarterScores[index] !== undefined ? selectedGame.teamA.quarterScores[index] : 0}
+                                                        </td>
+                                                    ))}
+                                                </tr>
+                                                <tr className="border-b border-gray-600 hover:bg-gray-600">
+                                                    <td className="py-3 px-2 text-left whitespace-nowrap">{selectedGame.teamB.name}</td>
+                                                    {Array.from({ length: selectedGame.totalQuarters }).map((_, index) => (
+                                                        <td key={`teamB-q-${index}`} className="py-3 px-2 text-center">
+                                                            {selectedGame.teamB.quarterScores[index] !== undefined ? selectedGame.teamB.quarterScores[index] : 0}
+                                                        </td>
+                                                    ))}
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="grid grid-cols-1 gap-6 mb-4">
                                 {/* Tabla de Equipo Local */}
                                 <div className="overflow-x-auto">
-                                    <h4 className="text-xl font-bold text-blue-400 mb-2">{selectedGame.teamA.name} ({selectedGame.teamA.score})</h4>
+                                    <h4 className="text-xl font-bold text-blue-400 mb-2">{selectedGame.teamA.name} ({selectedGame.teamA.score}) - Faltas: {selectedGame.teamA.totalFouls}</h4>
                                     <table className="min-w-full bg-gray-700 rounded-lg overflow-hidden shadow-md text-sm">
                                         <thead className="bg-gray-600 text-gray-200 uppercase text-xs leading-normal">
                                             <tr>
@@ -1240,7 +2062,7 @@ function App() {
 
                                 {/* Tabla de Equipo Visitante */}
                                 <div className="overflow-x-auto">
-                                    <h4 className="text-xl font-bold text-red-400 mb-2">{selectedGame.teamB.name} ({selectedGame.teamB.score})</h4>
+                                    <h4 className="text-xl font-bold text-red-400 mb-2">{selectedGame.teamB.name} ({selectedGame.teamB.score}) - Faltas: {selectedGame.teamB.totalFouls}</h4>
                                     <table className="min-w-full bg-gray-700 rounded-lg overflow-hidden shadow-md text-sm">
                                         <thead className="bg-gray-600 text-gray-200 uppercase text-xs leading-normal">
                                             <tr>
@@ -1300,7 +2122,7 @@ function App() {
                 )}
             </div>
         );
-    };
+    }, [history, navigateToPage]);
 
     // Renderizado condicional de páginas
     return (
@@ -1313,11 +2135,61 @@ function App() {
                     -webkit-text-stroke: none; /* Removed stroke for Webkit */
                     text-stroke: none; /* Removed stroke for standard */
                 }
+
+                @keyframes fadeInOut {
+                    0% { opacity: 0; }
+                    10% { opacity: 1; }
+                    90% { opacity: 1; }
+                    100% { opacity: 0; }
+                }
+
+                .animate-fadeInOut {
+                    animation: fadeInOut 3s ease-in-out forwards;
+                }
+
+                @keyframes fadeIn {
+                  from { opacity: 0; transform: scale(0.9); }
+                  to { opacity: 1; transform: scale(1); }
+                }
+                .animate-fade-in {
+                  animation: fadeIn 0.2s ease-out forwards;
+                }
                 `}
             </style>
             {page === 'home' && <HomePage />}
             {page === 'setupGame' && <GameSetupPage />}
-            {page === 'game' && <GamePage />}
+            {page === 'game' &&
+                <GamePage
+                    timer={timer} // Pasa el estado del timer
+                    setTimer={setTimer} // Pasa la función para actualizar el timer
+                    isRunning={isRunning} // Pasa el estado de isRunning
+                    setIsRunning={setIsRunning} // Pasa la función para actualizar isRunning
+                    timeUpMessage={timeUpMessage} // Pasa el mensaje de tiempo finalizado
+                    setTimeUpMessage={setTimeUpMessage} // Pasa la función para actualizar el mensaje
+                    localResetGame={localResetGame} // Pasa la función de reinicio
+                    initialGameTime={initialGameTime} // Se sigue pasando para el reset
+                    teamA={teamA} setTeamA={setTeamA}
+                    teamB={teamB} setTeamB={setTeamB}
+                    updatePlayerStat={updatePlayerStat}
+                    handleTeamUndo={handleTeamUndo}
+                    onEndGame={handleEndGame} // Pasamos la función de App para finalizar
+                    setShowRosterSelectionModalForTeam={setShowRosterSelectionModalForTeam}
+                    setShowPlayerStatsModal={setShowPlayerStatsModal}
+                    navigateToPage={navigateToPage} // Usar navigateToPage en lugar de setPage
+                    setAlertMessage={setAlertMessage}
+                    // rosterPlayers={rosterPlayers} <-- REMOVED, now using allRosterPlayers implicitly
+                    addPlayerToTeamFromRoster={addPlayerToTeamFromRoster}
+                    removePlayer={removePlayer}
+                    handlePlayerNameChange={handlePlayerNameChange}
+                    currentQuarter={currentQuarter} // Pasa el cuarto actual
+                    setCurrentQuarter={setCurrentQuarter} // Pasa la función para actualizar el cuarto
+                    totalQuarters={totalQuarters} // Pasa el total de cuartos
+                    allRosterPlayers={allRosterPlayers} // Pasa la lista de todos los jugadores
+                    addPlayerToGlobalRoster={addPlayerToGlobalRoster} // PASAMOS LAS FUNCIONES DE GESTIÓN
+                    updateGlobalPlayer={updateGlobalPlayer} // PASAMOS LAS FUNCIONES DE GESTIÓN
+                    removeGlobalPlayer={removeGlobalPlayer} // PASAMOS LAS FUNCIONES DE GESTIÓN
+                />
+            }
             {page === 'history' && <HistoryPage />}
             {page === 'roster' && <RosterManagementPage />}
             <AlertDialog message={alertMessage} onClose={() => setAlertMessage('')} />
