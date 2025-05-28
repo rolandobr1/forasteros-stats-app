@@ -61,6 +61,112 @@ const formatTime = (seconds) => {
     return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
 };
 
+// Componente del icono de contacto (roster)
+const ContactIcon = ({ size = 24, color = "currentColor" }) => (
+    <svg
+        width={size}
+        height={size}
+        viewBox="0 0 64 64"
+        fill="none" // Changed to none to allow fill from CSS
+        xmlns="http://www.w3.org/2000/svg"
+        className={color === "currentColor" ? "text-white" : ""} // Apply text-white if currentColor
+    >
+        {/* Círculo exterior - Fondo */}
+        <circle cx="32" cy="32" r="30" fill="#4B5563" /> {/* Darker gray background */}
+        {/* Cabeza */}
+        <circle cx="32" cy="24" r="12" fill="white" />
+        {/* Cuerpo */}
+        <path
+            d="M16 50c0-8.8 7.2-16 16-16s16 7.2 16 16"
+            fill="white"
+        />
+    </svg>
+);
+
+// NUEVO: Componente de la barra de navegación inferior
+const BottomNavigationBar = ({ currentPage, navigateToPage, hasUnfinishedGame }) => {
+    return (
+        <div className="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-700 shadow-lg z-50">
+            <div className="flex justify-around items-center h-16 px-2 sm:px-4">
+                {/* Inicio */}
+                <button
+                    onClick={() => navigateToPage('home')}
+                    className={`flex flex-col items-center justify-center p-1 rounded-md text-sm font-medium transition duration-200 ${
+                        currentPage === 'home' ? 'text-white bg-gray-700' : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                    }`}
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+                    </svg>
+                    <span className="mt-1 hidden sm:block">Inicio</span>
+                </button>
+
+                {/* Configurar Partido */}
+                <button
+                    onClick={() => navigateToPage('setupGame')}
+                    className={`flex flex-col items-center justify-center p-1 rounded-md text-sm font-medium transition duration-200 ${
+                        currentPage === 'setupGame' ? 'text-white bg-gray-700' : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                    }`}
+                >
+                    {/* Icono de Configuración */}
+                    <svg width="24" height="24" viewBox="0 0 64 64" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                        {/* Círculo exterior */}
+                        <circle cx="32" cy="32" r="30" fill="#4B5563" /> {/* Changed to match background theme */}
+                        {/* Engranaje */}
+                        <g fill="white">
+                            <circle cx="32" cy="32" r="10" />
+                            <path d="M32 20v-6M32 50v-6M44 32h6M14 32h6M41.2 22.8l4.2-4.2M18.6 45.4l4.2-4.2M41.2 41.2l4.2 4.2M18.6 18.6l4.2 4.2" stroke="white" strokeWidth="3" strokeLinecap="round"/>
+                        </g>
+                    </svg>
+                    <span className="mt-1 hidden sm:block">Configurar</span>
+                </button>
+
+                {/* Partido Actual / Reanudar */}
+                <button
+                    onClick={() => navigateToPage('game')}
+                    className={`flex flex-col items-center justify-center p-1 rounded-md text-sm font-medium transition duration-200 ${
+                        currentPage === 'game' ? 'text-white bg-gray-700' : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                    }`}
+                >
+                    {/* Icono de Partido Actual (Play) */}
+                    <svg width="24" height="24" viewBox="0 0 64 64" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                        {/* Círculo exterior */}
+                        <circle cx="32" cy="32" r="30" fill="#4B5563" /> {/* Changed to match background theme */}
+                        {/* Triángulo "Play" central */}
+                        <polygon points="26,20 26,44 46,32" fill="white" />
+                    </svg>
+                    <span className="mt-1 hidden sm:block">{hasUnfinishedGame ? 'Reanudar' : 'Partido Actual'}</span>
+                </button>
+
+                {/* Historial */}
+                <button
+                    onClick={() => navigateToPage('history')}
+                    className={`flex flex-col items-center justify-center p-1 rounded-md text-sm font-medium transition duration-200 ${
+                        currentPage === 'history' ? 'text-white bg-gray-700' : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                    }`}
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
+                        <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zM12.75 6a.75.75 0 00-1.5 0v6c0 .414.336.75.75.75h4.5a.75.75 0 000-1.5h-3.75V6z" clipRule="evenodd" />
+                    </svg>
+                    <span className="mt-1 hidden sm:block">Historial</span>
+                </button>
+
+                {/* Plantilla */}
+                <button
+                    onClick={() => navigateToPage('roster')}
+                    className={`flex flex-col items-center justify-center p-1 rounded-md text-sm font-medium transition duration-200 ${
+                        currentPage === 'roster' ? 'text-white bg-gray-700' : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                    }`}
+                >
+                    <ContactIcon size={24} color="currentColor" />
+                    <span className="mt-1 hidden sm:block">Jugadores</span>
+                </button>
+            </div>
+        </div>
+    );
+};
+
+
 // Componente principal de la aplicación
 function App() {
     const [page, setPage] = useState('home'); // 'home', 'setupGame', 'game', 'history', 'roster'
@@ -96,6 +202,10 @@ function App() {
     const [currentQuarter, setCurrentQuarter] = useState(1);
     const [totalQuarters, setTotalQuarters] = useState(4); // Default 4 quarters
 
+    // NUEVO: Estado para la duración del tiempo extra y el período actual de tiempo extra
+    const [overtimeDuration, setOvertimeDuration] = useState(5 * 60); // Default 5 minutes (300 seconds)
+    const [currentOvertimePeriod, setCurrentOvertimePeriod] = useState(0); // 0 for regular time, 1 for first OT, etc.
+
     // NUEVO: Estado para el partido no terminado (para reanudar)
     const [unfinishedGame, setUnfinishedGame] = useState(() => {
         const savedUnfinishedGame = localStorage.getItem('forasterosUnfinishedGame');
@@ -128,6 +238,7 @@ function App() {
         setIsRunning(false);
         setTimeUpMessage('');
         setCurrentQuarter(1); // Reiniciar cuartos al reiniciar el juego
+        setCurrentOvertimePeriod(0); // Reiniciar tiempo extra
         // Resetear también los scores y faltas por cuarto
         setTeamA(prev => ({ ...prev, currentQuarterScore: 0, allQuarterScores: [], currentQuarterFouls: 0 }));
         setTeamB(prev => ({ ...prev, currentQuarterScore: 0, allQuarterScores: [], currentQuarterFouls: 0 }));
@@ -156,6 +267,8 @@ function App() {
                     currentQuarter: currentQuarter,
                     totalQuarters: totalQuarters,
                     initialGameTime: initialGameTime,
+                    overtimeDuration: overtimeDuration, // Guardar duración de tiempo extra
+                    currentOvertimePeriod: currentOvertimePeriod, // Guardar período de tiempo extra
                 };
                 localStorage.setItem('forasterosUnfinishedGame', JSON.stringify(currentGameState));
             }
@@ -172,7 +285,7 @@ function App() {
         return () => {
             window.removeEventListener('beforeunload', saveCurrentGameState);
         };
-    }, [page, teamA, teamB, timer, isRunning, currentQuarter, totalQuarters, initialGameTime, unfinishedGame]);
+    }, [page, teamA, teamB, timer, isRunning, currentQuarter, totalQuarters, initialGameTime, overtimeDuration, currentOvertimePeriod, unfinishedGame]);
 
 
     // NUEVO: Función para navegar entre páginas, guardando el estado del partido si es necesario
@@ -186,12 +299,14 @@ function App() {
                 currentQuarter: currentQuarter,
                 totalQuarters: totalQuarters,
                 initialGameTime: initialGameTime,
+                overtimeDuration: overtimeDuration,
+                currentOvertimePeriod: currentOvertimePeriod,
             };
             localStorage.setItem('forasterosUnfinishedGame', JSON.stringify(currentGameState));
             setUnfinishedGame(currentGameState); // Actualizar el estado local también
         }
         setPage(newPage);
-    }, [page, teamA, teamB, timer, isRunning, currentQuarter, totalQuarters, initialGameTime]);
+    }, [page, teamA, teamB, timer, isRunning, currentQuarter, totalQuarters, initialGameTime, overtimeDuration, currentOvertimePeriod]);
 
 
     // NUEVO: Función para reanudar un partido
@@ -204,12 +319,14 @@ function App() {
             setCurrentQuarter(unfinishedGame.currentQuarter);
             setTotalQuarters(unfinishedGame.totalQuarters);
             setInitialGameTime(unfinishedGame.initialGameTime);
+            setOvertimeDuration(unfinishedGame.overtimeDuration || (5 * 60)); // Default if not saved
+            setCurrentOvertimePeriod(unfinishedGame.currentOvertimePeriod || 0); // Default if not saved
             setPage('game');
             setAlertMessage('Partido reanudado.');
         } else {
             setAlertMessage('No hay partido para reanudar.');
         }
-    }, [unfinishedGame, setTeamA, setTeamB, setTimer, setIsRunning, setCurrentQuarter, setTotalQuarters, setInitialGameTime, setPage, setAlertMessage]);
+    }, [unfinishedGame, setTeamA, setTeamB, setTimer, setIsRunning, setCurrentQuarter, setTotalQuarters, setInitialGameTime, setOvertimeDuration, setCurrentOvertimePeriod, setPage, setAlertMessage]);
 
 
     // NUEVO: Función para añadir un jugador a la lista global
@@ -433,13 +550,12 @@ function App() {
         const finalScoreA = teamA.players.reduce((acc, p) => acc + p.score, 0);
         const finalScoreB = teamB.players.reduce((acc, p) => acc + p.score, 0);
 
-        // Ensure the current quarter's score is added if the game ends prematurely
+        // Ensure the current quarter/overtime score is added if the game ends prematurely
         let finalTeamAQuarterScores = [...teamA.allQuarterScores];
         let finalTeamBQuarterScores = [...teamB.allQuarterScores];
 
         // Only add the current quarter's score if it hasn't been added by handleNextQuarter
-        // Or if it's the last quarter and the score hasn't been recorded yet
-        if (finalTeamAQuarterScores.length < currentQuarter) {
+        if (finalTeamAQuarterScores.length < currentQuarter + currentOvertimePeriod) { // Adjusted for overtime periods
             finalTeamAQuarterScores.push(teamA.currentQuarterScore);
             finalTeamBQuarterScores.push(teamB.currentQuarterScore);
         }
@@ -464,6 +580,7 @@ function App() {
             },
             quartersPlayed: currentQuarter, // Guardar cuartos jugados
             totalQuarters: totalQuarters, // Guardar total de cuartos
+            overtimePeriodsPlayed: currentOvertimePeriod, // Guardar tiempos extra jugados
         };
         setHistory(prev => [...prev, gameSummary]);
         navigateToPage('history'); // Usar navigateToPage para limpiar el unfinishedGame
@@ -473,12 +590,13 @@ function App() {
         setIsRunning(false);
         setTimeUpMessage('');
         setCurrentQuarter(1); // Resetear cuartos
+        setCurrentOvertimePeriod(0); // Resetear tiempos extra
         // Reset quarter scores and fouls for the next game
         setTeamA(prev => ({ ...prev, currentQuarterScore: 0, allQuarterScores: [], currentQuarterFouls: 0 }));
         setTeamB(prev => ({ ...prev, currentQuarterScore: 0, allQuarterScores: [], currentQuarterFouls: 0 }));
         setUnfinishedGame(null); // Asegurarse de limpiar el partido no terminado
         localStorage.removeItem('forasterosUnfinishedGame');
-    }, [initialGameTime, timer, teamA, teamB, resetGamePlayersAndModals, currentQuarter, totalQuarters, navigateToPage]);
+    }, [initialGameTime, timer, teamA, teamB, resetGamePlayersAndModals, currentQuarter, totalQuarters, currentOvertimePeriod, navigateToPage]);
 
     // NUEVO: Obtener todos los jugadores de la lista global para el modal de selección de jugadores en el partido
     const allRosterPlayers = useMemo(() => {
@@ -488,7 +606,7 @@ function App() {
 
     // Componente para la página de inicio
     const HomePage = useCallback(() => (
-        <div className="flex flex-col items-center justify-center min-h-screen text-white p-4">
+        <div className="flex flex-col items-center justify-center min-h-screen text-white p-4 pb-20"> {/* Added pb-20 for bottom nav space */}
             <h1 className="text-4xl font-bold mb-4 text-forasteros-title">Forasteros Stats App</h1>
             <img
                 src="https://i.imgur.com/Wn0F6h5.png"
@@ -498,7 +616,7 @@ function App() {
             <div className="flex flex-col space-y-4 w-full max-w-sm">
                 <button
                     onClick={() => navigateToPage('setupGame')} // Ir a la página de configuración
-                    className="bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg text-lg transition transform hover:scale-105"
+                    className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg text-lg transition transform hover:scale-105"
                 >
                     Iniciar Nuevo Partido
                 </button>
@@ -510,11 +628,13 @@ function App() {
                         Reanudar Partido
                     </button>
                 )}
+                {/* Estos botones ahora se manejan por la barra de navegación inferior
                 <button
                     onClick={() => navigateToPage('roster')}
-                    className="bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg text-lg transition transform hover:scale-105"
+                    className="bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg text-lg transition transform hover:scale-105 flex items-center justify-center space-x-2"
                 >
-                    Gestionar Jugadores
+                    <ContactIcon size={24} color="currentColor" />
+                    <span>Gestionar Jugadores</span>
                 </button>
                 <button
                     onClick={() => navigateToPage('history')}
@@ -522,6 +642,7 @@ function App() {
                 >
                     Historial de Partidos
                 </button>
+                */}
             </div>
             <p className="mt-8 text-gray-400 text-sm">Desarrollado por Forasteros lb</p>
         </div>
@@ -531,26 +652,34 @@ function App() {
     const GameSetupPage = useCallback(() => {
         const [minutes, setMinutes] = useState(initialGameTime / 60); // Default 10 minutes
         const [quarters, setQuarters] = useState(totalQuarters); // Default 4 quarters
+        const [otMinutes, setOtMinutes] = useState(overtimeDuration / 60); // Default 5 minutes for overtime
 
         const handleStartGame = () => {
             if (minutes <= 0 || isNaN(minutes)) {
-                setAlertMessage("Por favor, introduce un número de minutos válido y positivo.");
+                setAlertMessage("Por favor, introduce un número de minutos válido y positivo para los cuartos.");
                 return;
             }
             if (quarters <= 0 || isNaN(quarters)) {
                 setAlertMessage("Por favor, introduce un número de cuartos válido y positivo.");
                 return;
             }
+            if (otMinutes < 0 || isNaN(otMinutes)) { // Allow 0 for no overtime
+                setAlertMessage("Por favor, introduce un número de minutos válido y no negativo para el tiempo extra.");
+                return;
+            }
+
             setInitialGameTime(minutes * 60); // Convert minutes to seconds
             setTimer(minutes * 60); // Inicializa el timer global de App
             setTotalQuarters(quarters); // Establece el total de cuartos
+            setOvertimeDuration(otMinutes * 60); // Establece la duración del tiempo extra
             setCurrentQuarter(1); // Inicia en el primer cuarto
+            setCurrentOvertimePeriod(0); // Reinicia los tiempos extra
             resetGamePlayersAndModals(); // Reset players before starting new game
             navigateToPage('game'); // Navigate to game page
         };
 
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center text-white p-4">
+            <div className="min-h-screen flex flex-col items-center justify-center text-white p-4 pb-20"> {/* Added pb-20 for bottom nav space */}
                 <h2 className="text-4xl font-bold mb-8 text-white">Configurar Partido</h2> {/* Título en blanco */}
                 <div className="bg-gray-800 p-8 rounded-xl shadow-2xl border border-gray-700 flex flex-col items-center space-y-6 max-w-sm w-full">
                     <label htmlFor="game-minutes" className="text-lg font-semibold text-gray-300">Duración por Cuarto (minutos):</label>
@@ -571,22 +700,26 @@ function App() {
                         min="1"
                         className="w-full p-3 rounded-md bg-gray-700 text-white text-center text-2xl font-bold focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
+                    <label htmlFor="overtime-minutes" className="text-lg font-semibold text-gray-300">Duración Tiempo Extra (minutos):</label>
+                    <input
+                        id="overtime-minutes"
+                        type="number"
+                        value={otMinutes}
+                        onChange={(e) => setOtMinutes(parseInt(e.target.value) || 0)}
+                        min="0"
+                        className="w-full p-3 rounded-md bg-gray-700 text-white text-center text-2xl font-bold focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
                     <button
                         onClick={handleStartGame}
                         className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg text-lg transition transform hover:scale-105 w-full"
                     >
                         Comenzar Partido
                     </button>
-                    <button
-                        onClick={() => navigateToPage('home')}
-                        className="bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded-lg text-sm shadow-md transition duration-200 w-full"
-                    >
-                        &larr; Volver
-                    </button>
+                    {/* Botón de volver eliminado, ahora en la barra de navegación inferior */}
                 </div>
             </div>
         );
-    }, [initialGameTime, totalQuarters, resetGamePlayersAndModals, setAlertMessage, setInitialGameTime, navigateToPage, setTimer, setTotalQuarters, setCurrentQuarter]);
+    }, [initialGameTime, totalQuarters, overtimeDuration, resetGamePlayersAndModals, setAlertMessage, setInitialGameTime, navigateToPage, setTimer, setTotalQuarters, setOvertimeDuration, setCurrentQuarter, setCurrentOvertimePeriod]);
 
     // Componente para la página de gestión de jugadores (antes RosterManagementPage)
     const RosterManagementPage = useCallback(() => {
@@ -739,14 +872,9 @@ function App() {
         };
 
         return (
-            <div className="min-h-screen text-white p-4">
+            <div className="min-h-screen text-white p-4 pb-20"> {/* Added pb-20 for bottom nav space */}
                 <div className="flex justify-between items-center mb-6">
-                    <button
-                        onClick={() => navigateToPage('home')}
-                        className="bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded-lg text-sm shadow-md transition duration-200"
-                    >
-                        &larr; Volver
-                    </button>
+                    {/* Botón de volver eliminado, ahora en la barra de navegación inferior */}
                     <h2 className="text-3xl font-bold text-white">Gestionar Jugadores</h2> {/* Título actualizado */}
                 </div>
 
@@ -861,12 +989,14 @@ function App() {
                 )}
             </div>
         );
-    }, [allPlayers, setAlertMessage, addPlayerToGlobalRoster, updateGlobalPlayer, removeGlobalPlayer, reorderGlobalPlayers, navigateToPage]);
+    }, [allPlayers, setAlertMessage, addPlayerToGlobalRoster, updateGlobalPlayer, removeGlobalPlayer, reorderGlobalPlayers]);
 
 
     // New component for a single player row
-    const PlayerRow = React.memo(({ player, teamId, isRunning, updatePlayerStat, removePlayer, handlePlayerNameChange, handlePlayerPressStart, handlePlayerPressEnd, pressTimerId, setShowPlayerStatsModal }) => { // Added setShowPlayerStatsModal
+    const PlayerRow = React.memo(({ player, teamId, isRunning, updatePlayerStat, removePlayer, handlePlayerNameChange, setShowPlayerStatsModal }) => {
         const [localPlayerName, setLocalPlayerName] = useState(player.name);
+        const [pressTimerId, setPressTimerId] = useState(null); // Local state for long press timer
+        const longPressThreshold = 2000; // 2 seconds
 
         // Update local state if player.name changes from parent (e.g., initial load or undo)
         useEffect(() => {
@@ -889,80 +1019,115 @@ function App() {
             }
         };
 
+        // Handle press start on the stats button
+        const handleButtonPressStart = useCallback((e) => {
+            e.stopPropagation(); // Prevent propagation to parent elements
+            if (pressTimerId) {
+                clearTimeout(pressTimerId);
+            }
+            const timer = setTimeout(() => {
+                // This is a long press
+                setShowPlayerStatsModal({ playerId: player.id, teamId: teamId, isLongPress: true });
+                setPressTimerId(null); // Clear timer ID as action is performed
+            }, longPressThreshold);
+            setPressTimerId(timer);
+        }, [player.id, teamId, pressTimerId, setShowPlayerStatsModal]);
+
+        // Handle press end on the stats button
+        const handleButtonPressEnd = useCallback((e) => {
+            e.stopPropagation(); // Prevent propagation to parent elements
+            if (pressTimerId) {
+                clearTimeout(pressTimerId);
+                setPressTimerId(null);
+                // If the timer was cleared, it means it was a short tap (less than longPressThreshold)
+                // Open the modal only if it's not already open in long-press mode for this player
+                setShowPlayerStatsModal({ playerId: player.id, teamId: teamId, isLongPress: false });
+            }
+        }, [player.id, teamId, pressTimerId, setShowPlayerStatsModal]);
+
+        // Handle mouse/touch leave/cancel to clear the timer
+        const handleButtonPressCancel = useCallback(() => {
+            if (pressTimerId) {
+                clearTimeout(pressTimerId);
+                setPressTimerId(null);
+            }
+        }, [pressTimerId]);
+
+
         return (
             <div
-                onMouseDown={() => handlePlayerPressStart(player, teamId)}
-                onMouseUp={() => handlePlayerPressEnd(player, teamId)}
-                onMouseLeave={() => { if (pressTimerId) clearTimeout(pressTimerId); setShowPlayerStatsModal(null); }} // Changed setPressTimerId to setShowPlayerStatsModal(null)
-                onTouchStart={() => handlePlayerPressStart(player, teamId)}
-                onTouchEnd={() => handlePlayerPressEnd(player, teamId)}
-                onTouchCancel={() => { if (pressTimerId) clearTimeout(pressTimerId); setShowPlayerStatsModal(null); }} // Changed setPressTimerId to setShowPlayerStatsModal(null)
                 className={`
-                    bg-gray-600 p-3 rounded-lg shadow-md flex flex-col gap-2 transition duration-200 ease-in-out
-                    ${isRunning ? 'cursor-pointer hover:bg-gray-500' : 'cursor-default opacity-80'}
-                    sm:flex-row sm:items-center sm:justify-between
+                    bg-gray-600 p-3 rounded-lg shadow-md flex items-center gap-2 transition duration-200 ease-in-out
+                    ${isRunning ? 'cursor-default opacity-80' : 'cursor-default'}
+                    flex-wrap sm:flex-nowrap // Main container allows wrapping on mobile, no wrap on sm+
+                    justify-between // Distribute items horizontally
                 `}
             >
                 {!isRunning && (
                     <button
                         onClick={(e) => {
-                            e.stopPropagation(); // Stop propagation to prevent opening stats modal
+                            e.stopPropagation();
                             removePlayer(teamId, player.id);
                         }}
-                        onMouseDown={(e) => e.stopPropagation()} // Stop propagation of mousedown event
-                        onTouchStart={(e) => e.stopPropagation()} // Stop propagation of touchstart event
-                        className="rounded-full bg-red-500 hover:bg-red-600 text-white w-7 h-7 flex items-center justify-center text-sm font-bold transition duration-200 flex-shrink-0 shadow-sm"
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onTouchStart={(e) => e.stopPropagation()}
+                        className="rounded-full bg-red-600 hover:bg-red-700 text-white w-7 h-7 flex items-center justify-center text-sm font-bold transition duration-200 flex-shrink-0 shadow-sm"
                         title="Eliminar Jugador del Partido"
                     >
                         -
                     </button>
                 )}
 
-                <div className="
-                    flex flex-col items-center w-full gap-2
-                    sm:flex-row sm:justify-between sm:w-auto sm:flex-grow
-                ">
-                    {/* Nombre y Número del Jugador */}
-                    <div className="flex items-center gap-1 w-full text-center sm:w-auto sm:text-left justify-center sm:justify-start">
-                        <span className="text-sm text-gray-300">#</span>
-                        <span className="text-base font-semibold text-white">{player.jersey}</span>
-                        <input
-                            type="text"
-                            value={localPlayerName} // Use local state
-                            onChange={handleLocalNameChange} // Update local state
-                            onBlur={handleNameBlur} // Update parent state on blur
-                            onKeyDown={handleNameKeyDown} // Trigger blur on Enter
-                            readOnly={isRunning}
-                            // Stop propagation for mousedown/touchstart/mouseup/touchend on the input itself
-                            // only when not running, to prevent parent's long-press/short-tap logic
-                            onMouseDown={(e) => { if (!isRunning) e.stopPropagation(); }}
-                            onMouseUp={(e) => { if (!isRunning) e.stopPropagation(); }}
-                            onTouchStart={(e) => { if (!isRunning) e.stopPropagation(); }}
-                            onTouchEnd={(e) => { if (!isRunning) e.stopPropagation(); }}
-                            className={`
-                                text-base font-semibold text-white w-full text-center bg-gray-700 p-1 rounded-md
-                                focus:outline-none focus:ring-2 focus:ring-white min-w-0 flex-grow
-                                ${isRunning ? 'cursor-pointer opacity-90' : ''}
-                                sm:w-auto sm:text-left
-                            `}
-                        />
-                    </div>
+                {/* Player Name & Jersey - make it take available space, but not push others out */}
+                <div className="flex items-center gap-1 flex-grow min-w-[100px] sm:flex-grow"> {/* flex-grow to take space, min-w to prevent too small */}
+                    <span className="text-sm text-gray-300">#</span>
+                    <span className="text-base font-semibold text-white">{player.jersey}</span>
+                    <input
+                        type="text"
+                        value={localPlayerName}
+                        onChange={handleLocalNameChange}
+                        onBlur={handleNameBlur}
+                        onKeyDown={handleNameKeyDown}
+                        readOnly={isRunning}
+                        onMouseDown={(e) => { if (!isRunning) e.stopPropagation(); }}
+                        onMouseUp={(e) => { if (!isRunning) e.stopPropagation(); }}
+                        onTouchStart={(e) => { if (!isRunning) e.stopPropagation(); }}
+                        onTouchEnd={(e) => { if (!isRunning) e.stopPropagation(); }}
+                        className={`
+                            text-base font-semibold text-white bg-gray-700 p-1 rounded-md
+                            focus:outline-none focus:ring-2 focus:ring-white min-w-0 flex-grow
+                            ${isRunning ? 'cursor-pointer opacity-90' : ''}
+                        `}
+                    />
+                </div>
 
-                    {/* Estadísticas del Jugador: Puntos, Faltas - REVISADO */}
-                    <div className="
-                        flex flex-row justify-around w-full gap-x-1 items-center
-                        sm:justify-center sm:space-x-3 sm:w-auto
-                    ">
-                        <div className="flex flex-col items-center justify-center min-w-[35px]">
-                            <span className="text-xs text-blue-300 sm:text-sm">Pts:</span>
-                            <span className="text-lg font-bold text-blue-400 sm:text-xl">{player.score}</span>
-                        </div>
-                        <div className="flex flex-col items-center justify-center min-w-[35px]">
-                            <span className="text-xs text-red-300 sm:text-sm">Flt:</span>
-                            <span className="text-lg font-bold text-red-400 sm:text-xl">{player.fouls}</span>
-                        </div>
+                {/* Estadísticas del Jugador: Puntos, Faltas */}
+                <div className="flex flex-row justify-around items-center gap-x-1 flex-shrink-0"> {/* Ensure this doesn't wrap its content */}
+                    <div className="flex flex-col items-center justify-center min-w-[35px]">
+                        <span className="text-xs text-blue-300 sm:text-sm">Pts:</span>
+                        <span className="text-lg font-bold text-blue-400 sm:text-xl">{player.score}</span>
+                    </div>
+                    <div className="flex flex-col items-center justify-center min-w-[35px]">
+                        <span className="text-xs text-red-300 sm:text-sm">Flt:</span>
+                        <span className="text-lg font-bold text-red-400 sm:text-xl">{player.fouls}</span>
                     </div>
                 </div>
+
+                {/* Stats Modal Button */}
+                <button
+                    onMouseDown={handleButtonPressStart}
+                    onMouseUp={handleButtonPressEnd}
+                    onMouseLeave={handleButtonPressCancel}
+                    onTouchStart={handleButtonPressStart}
+                    onTouchEnd={handleButtonPressEnd}
+                    onTouchCancel={handleButtonPressCancel}
+                    className="bg-gray-700 hover:bg-gray-600 text-white rounded-md px-3 py-2 text-sm font-bold shadow-md transition duration-200 flex-shrink-0"
+                    title="Ver Estadísticas del Jugador"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M4 20h4V10H4v10zm6 0h4V4h-4v16zm6 0h4V14h-4v6z"/>
+                    </svg>
+                </button>
             </div>
         );
     });
@@ -977,12 +1142,9 @@ function App() {
         addPlayerToTeamFromRoster, removePlayer, handlePlayerNameChange,
         currentQuarter, setCurrentQuarter, totalQuarters, initialGameTime, setTimer,
         allRosterPlayers, // Pasamos allRosterPlayers para verificar si está vacío
-        addPlayerToGlobalRoster, updateGlobalPlayer, removeGlobalPlayer // PASAMOS LAS FUNCIONES DE GESTIÓN DE JUGADORES
+        addPlayerToGlobalRoster, updateGlobalPlayer, removeGlobalPlayer, // PASAMOS LAS FUNCIONES DE GESTIÓN DE JUGADORES
+        overtimeDuration, currentOvertimePeriod, setCurrentOvertimePeriod // NUEVOS PROPS PARA TIEMPO EXTRA
     }) => {
-        // Estado para el temporizador de long press en el área del jugador
-        const [pressTimerId, setPressTimerId] = useState(null);
-        const longPressThreshold = 2000; // 2 segundos
-
         // NUEVO: Estado para controlar la visibilidad del modal de la plantilla
         const [showRosterViewModal, setShowRosterViewModal] = useState(false);
 
@@ -1022,114 +1184,71 @@ function App() {
             addPlayerToTeamFromRoster(teamId, genericPlayer);
         }, [teamA.name, teamA.players, teamB.name, teamB.players, randomGenericNames, addPlayerToTeamFromRoster]);
 
-
-        // Función para iniciar el temporizador de long press
-        const handlePlayerPressStart = useCallback((player, teamName) => {
-            // Limpiar cualquier temporizador existente para evitar múltiples temporizadores
-            if (pressTimerId) {
-                clearTimeout(pressTimerId);
-            }
-            const timer = setTimeout(() => {
-                // Esto es un long press
-                setShowPlayerStatsModal({ playerId: player.id, teamId: teamName, isLongPress: true });
-                setPressTimerId(null); // Limpiar ID del temporizador ya que la acción se ha realizado
-            }, longPressThreshold);
-            setPressTimerId(timer);
-        }, [pressTimerId, setShowPlayerStatsModal]);
-
-        // Función para finalizar el temporizador de long press
-        const handlePlayerPressEnd = useCallback((player, teamName) => {
-            if (pressTimerId) {
-                clearTimeout(pressTimerId);
-                setPressTimerId(null);
-                // Si el temporizador se limpió, significa que fue un toque corto (menos de longPressThreshold)
-                // Abrir el modal solo si no está ya abierto por un long press
-                if (!showPlayerStatsModal || showPlayerStatsModal.playerId !== player.id || !showPlayerStatsModal.isLongPress) {
-                    setShowPlayerStatsModal({ playerId: player.id, teamId: teamName, isLongPress: false });
-                }
-            }
-        }, [pressTimerId, showPlayerStatsModal, setShowPlayerStatsModal]);
-
         const currentScoreA = teamA.players.reduce((acc, p) => acc + p.score, 0);
         const currentScoreB = teamB.players.reduce((acc, p) => acc + p.score, 0);
         // Las faltas totales que se muestran en el marcador son las faltas del cuarto actual
         const currentQuarterFoulsA = teamA.currentQuarterFouls;
         const currentQuarterFoulsB = teamB.currentQuarterFouls;
 
-        // Función para avanzar al siguiente cuarto
+        // Función para avanzar al siguiente cuarto o iniciar tiempo extra
         const handleNextQuarter = useCallback(() => {
-            // Capture current quarter's score
-            const currentQuarterScoreA = teamA.currentQuarterScore;
-            const currentQuarterScoreB = teamB.currentQuarterScore;
+            const finalScoreA = teamA.players.reduce((acc, p) => acc + p.score, 0); // Calculate total score at end of period
+            const finalScoreB = teamB.players.reduce((acc, p) => acc + p.score, 0);
 
-            // Update allQuarterScores for both teams and reset currentQuarterScore
-            setTeamA(prev => ({ ...prev, allQuarterScores: [...prev.allQuarterScores, currentQuarterScoreA], currentQuarterScore: 0, currentQuarterFouls: 0 })); // Reset currentQuarterFouls
-            setTeamB(prev => ({ ...prev, allQuarterScores: [...prev.allQuarterScores, currentQuarterScoreB], currentQuarterScore: 0, currentQuarterFouls: 0 })); // Reset currentQuarterFouls
+            // Save current quarter/overtime score
+            setTeamA(prev => ({ ...prev, allQuarterScores: [...prev.allQuarterScores, prev.currentQuarterScore] }));
+            setTeamB(prev => ({ ...prev, allQuarterScores: [...prev.allQuarterScores, prev.currentQuarterScore] }));
 
-            setIsRunning(false); // Pausar el temporizador al cambiar de cuarto
-            setTimer(initialGameTime); // Reiniciar el temporizador para el nuevo cuarto
-            setTimeUpMessage(''); // Limpiar mensaje de tiempo finalizado
+            setIsRunning(false); // Pause timer
+            setTimeUpMessage(''); // Clear time up message
 
             if (currentQuarter < totalQuarters) {
+                // Regular quarter transition
                 setCurrentQuarter(prev => prev + 1);
-                setIsRunning(true); // Auto-start for next quarter
+                setTimer(initialGameTime); // Reset timer for next quarter
+                // Reset current quarter score and fouls for the new quarter
+                setTeamA(prev => ({ ...prev, currentQuarterScore: 0, currentQuarterFouls: 0 }));
+                setTeamB(prev => ({ ...prev, currentQuarterScore: 0, currentQuarterFouls: 0 }));
+                setIsRunning(true); // Auto-start next quarter
             } else {
-                // Si es el último cuarto, finalizar el partido
-                onEndGame(); // onEndGame will now capture the final state including quarter scores
+                // End of last regular quarter or an overtime period
+                if (finalScoreA === finalScoreB) {
+                    // Scores are tied
+                    if (overtimeDuration > 0) {
+                        // Start a new overtime period
+                        setCurrentOvertimePeriod(prev => prev + 1);
+                        setTimer(overtimeDuration); // Set timer for overtime
+                        // Reset current quarter score and fouls for the new overtime period
+                        setTeamA(prev => ({ ...prev, currentQuarterScore: 0, currentQuarterFouls: 0 }));
+                        setTeamB(prev => ({ ...prev, currentQuarterScore: 0, currentQuarterFouls: 0 }));
+                        setIsRunning(true); // Auto-start overtime
+                        setAlertMessage(`¡Empate! Iniciando tiempo extra #${currentOvertimePeriod + 1}.`);
+                    } else {
+                        // No overtime configured, game ends in a tie
+                        onEndGame();
+                        setAlertMessage('¡Partido finalizado en empate!');
+                    }
+                } else {
+                    // Scores are not tied, game ends
+                    onEndGame();
+                }
             }
-        }, [currentQuarter, totalQuarters, setIsRunning, setTimer, initialGameTime, setTimeUpMessage, setCurrentQuarter, onEndGame, teamA, teamB, setTeamA, setTeamB]);
+        }, [currentQuarter, totalQuarters, initialGameTime, overtimeDuration, teamA, teamB, setCurrentQuarter, setTimer, setIsRunning, setTimeUpMessage, setTeamA, setTeamB, setCurrentOvertimePeriod, onEndGame, setAlertMessage, currentOvertimePeriod]);
 
 
         return (
-            <div className="min-h-screen text-white p-4">
+            <div className="min-h-screen text-white p-4 pb-20"> {/* Added pb-20 for bottom nav space */}
                 {/* MODIFIED: Use grid-cols-1 on mobile, sm:grid-cols-3 on larger screens */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 items-center mb-6 gap-y-4 sm:gap-y-0"> {/* Added gap-y for vertical spacing on mobile */}
-                    <div className="flex flex-wrap gap-2 justify-center sm:justify-start"> {/* Use flex-wrap and justify-center for buttons on small screens */}
-                        <button
-                            onClick={() => navigateToPage('home')}
-                            className="bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded-lg text-sm shadow-md transition duration-200"
-                            title="Volver a Inicio"
-                        >
-                            {/* Home Icon (SVG) */}
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 inline-block" viewBox="0 0 20 20" fill="currentColor">
-                                <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
-                            </svg>
-                        </button>
-                        <button
-                            onClick={() => {
-                                setIsRunning(false); // Pausar el juego al ir a configuración
-                                navigateToPage('setupGame');
-                            }}
-                            className="bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded-lg text-sm shadow-md transition duration-200"
-                            title="Configuración del Partido"
-                        >
-                            {/* Vertical Ellipsis Icon (SVG) */}
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 inline-block" viewBox="0 0 24 24" fill="currentColor">
-                                <circle cx="12" cy="5" r="2" />
-                                <circle cx="12" cy="12" r="2" />
-                                <circle cx="12" cy="19" r="2" />
-                            </svg>
-                        </button>
-                        {/* NUEVO: Botón para ver la plantilla */}
-                        <button
-                            onClick={() => setShowRosterViewModal(true)}
-                            className="bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded-lg text-sm shadow-md transition duration-200"
-                            title="Ver Plantilla Completa"
-                        >
-                            {/* Users Icon (SVG) - from Phosphor Icons for example, or a simple text */}
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 inline-block" viewBox="0 0 256 256" fill="currentColor">
-                                <path d="M234.33,210A128.1,128.1,0,0,0,128,184c-43.23,0-81.33,21.49-106.33,54a8,8,0,0,1-14-5.32c.5-62.59,51.56-113.33,115.66-113.33S249.83,142.09,250.33,204.68a8,8,0,0,1-14,5.32ZM128,144a48,48,0,1,0-48-48A48,48,0,0,0,128,144Z"/>
-                            </svg>
-                        </button>
-                    </div>
+                    {/* Botones de navegación superior eliminados, ahora en la barra de navegación inferior */}
 
                     {/* El temporizador se muestra aquí como título principal, centrado en la columna del medio */}
                     <div className="col-span-1 sm:col-span-1 text-5xl font-extrabold bg-gray-800 py-3 px-6 rounded-lg shadow-inner text-center text-white justify-self-center w-full sm:w-auto"> {/* Added w-full sm:w-auto for responsiveness */}
                         {formatTime(timer)}
                     </div>
-                    {/* Display de Cuartos */}
+                    {/* Display de Cuartos / Tiempo Extra */}
                     <div className="text-xl font-bold text-gray-300 justify-self-center sm:justify-self-end"> {/* Centered on mobile, end on sm+ */}
-                        Cuarto: {currentQuarter}/{totalQuarters}
+                        {currentOvertimePeriod > 0 ? `Tiempo Extra: ${currentOvertimePeriod}` : `Cuarto: ${currentQuarter}/${totalQuarters}`}
                     </div>
                 </div>
 
@@ -1145,20 +1264,20 @@ function App() {
                     </button>
                     <button
                         onClick={localResetGame} // Llama a la función de App para reiniciar el timer
-                        className="bg-red-600 hover:bg-red-700 text-white py-2 px-6 rounded-lg font-bold text-lg shadow-lg transition duration-200 w-full sm:w-auto" /* Added w-full sm:w-auto */
+                        className="bg-gray-700 hover:bg-gray-600 text-white py-2 px-6 rounded-lg font-bold text-lg shadow-lg transition duration-200 w-full sm:w-auto" /* Changed to gray-700 */
                     >
                         Reiniciar
                     </button>
                     <button
                         onClick={handleNextQuarter}
-                        className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-lg font-bold text-lg shadow-lg transition duration-200 w-full sm:w-auto" /* Added w-full sm:w-auto */
+                        className="bg-gray-700 hover:bg-gray-600 text-white py-2 px-6 rounded-lg font-bold text-lg shadow-lg transition duration-200 w-full sm:w-auto" /* Changed to gray-700 */
                     >
-                        {currentQuarter < totalQuarters ? 'Siguiente Cuarto' : 'Finalizar Partido'}
+                        {currentQuarter < totalQuarters ? 'Siguiente Cuarto' : (currentOvertimePeriod > 0 ? 'Siguiente T. Extra / Finalizar' : 'Finalizar Partido')}
                     </button>
                     {/* NUEVO: Botón para terminar el partido en cualquier momento */}
                     <button
                         onClick={onEndGame}
-                        className="bg-purple-600 hover:bg-purple-700 text-white py-2 px-6 rounded-lg font-bold text-lg shadow-lg transition duration-200 w-full sm:w-auto" /* Added w-full sm:w-auto */
+                        className="bg-red-600 hover:bg-red-700 text-white py-2 px-6 rounded-lg font-bold text-lg shadow-lg transition duration-200 w-full sm:w-auto" /* Changed to red-600 */
                     >
                         Terminar Partido Ahora
                     </button>
@@ -1199,7 +1318,8 @@ function App() {
                                         teamA.lastAction ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'bg-gray-600 text-gray-400 cursor-not-allowed'
                                     }`}
                                 >
-                                    <span className="mr-1">↩️</span> Deshacer
+                                    {/* Solo icono para deshacer */}
+                                    ↩️
                                 </button>
                                 <button
                                     onClick={() => {
@@ -1209,7 +1329,7 @@ function App() {
                                             setShowRosterSelectionModalForTeam(teamA.name);
                                         }
                                     }}
-                                    className="bg-blue-500 hover:bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold shadow-md transition duration-200"
+                                    className="bg-green-600 hover:bg-green-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold shadow-md transition duration-200"
                                     title="Añadir Jugador de Plantilla"
                                 >
                                     +
@@ -1226,9 +1346,6 @@ function App() {
                                     updatePlayerStat={updatePlayerStat}
                                     removePlayer={removePlayer}
                                     handlePlayerNameChange={handlePlayerNameChange}
-                                    handlePlayerPressStart={handlePlayerPressStart}
-                                    handlePlayerPressEnd={handlePlayerPressEnd}
-                                    pressTimerId={pressTimerId}
                                     setShowPlayerStatsModal={setShowPlayerStatsModal}
                                 />
                             ))}
@@ -1247,7 +1364,8 @@ function App() {
                                         teamB.lastAction ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'bg-gray-600 text-gray-400 cursor-not-allowed'
                                     }`}
                                 >
-                                    <span className="mr-1">↩️</span> Deshacer
+                                    {/* Solo icono para deshacer */}
+                                    ↩️
                                 </button>
                                 <button
                                     onClick={() => {
@@ -1257,7 +1375,7 @@ function App() {
                                             setShowRosterSelectionModalForTeam(teamB.name);
                                         }
                                     }}
-                                    className="bg-red-500 hover:bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold shadow-md transition duration-200"
+                                    className="bg-green-600 hover:bg-green-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold shadow-md transition duration-200"
                                     title="Añadir Jugador de Plantilla"
                                 >
                                     +
@@ -1274,9 +1392,6 @@ function App() {
                                     updatePlayerStat={updatePlayerStat}
                                     removePlayer={removePlayer}
                                     handlePlayerNameChange={handlePlayerNameChange}
-                                    handlePlayerPressStart={handlePlayerPressStart}
-                                    handlePlayerPressEnd={handlePlayerPressEnd}
-                                    pressTimerId={pressTimerId}
                                     setShowPlayerStatsModal={setShowPlayerStatsModal}
                                 />
                             ))}
@@ -1760,7 +1875,7 @@ function App() {
                             />
                             <button
                                 type="submit"
-                                className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-200"
+                                className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-200"
                             >
                                 Añadir
                             </button>
@@ -1808,7 +1923,7 @@ function App() {
                                                 </button>
                                                 <button
                                                     onClick={() => handleDeletePlayerClick(player.id)}
-                                                    className="bg-red-500 hover:bg-red-600 text-white text-sm py-2 px-3 rounded-md"
+                                                    className="bg-red-600 hover:bg-red-700 text-white text-sm py-2 px-3 rounded-md"
                                                 >
                                                     Eliminar
                                                 </button>
@@ -1850,12 +1965,18 @@ function App() {
                     return `"${stringValue}"`;
                 }
                 return stringValue;
-            };
+                };
 
             let csvContent = `Detalles del Partido\n`;
             csvContent += `Fecha:,${escapeCsv(game.date)}\n`;
             csvContent += `Duración:,${escapeCsv(game.duration)}\n`;
-            csvContent += `Cuartos Jugados:,${escapeCsv(game.quartersPlayed)}/${escapeCsv(game.totalQuarters)}\n\n`; // Añadir cuartos
+            csvContent += `Cuartos Jugados:,${escapeCsv(game.quartersPlayed)}/${escapeCsv(game.totalQuarters)}\n`; // Añadir cuartos
+            if (game.overtimePeriodsPlayed > 0) {
+                csvContent += `Tiempos Extra Jugados:,${escapeCsv(game.overtimePeriodsPlayed)}\n\n`; // Añadir tiempos extra
+            } else {
+                csvContent += `\n`;
+            }
+
 
             // Encabezados para las estadísticas de los jugadores
             const playerHeaders = [
@@ -1922,14 +2043,9 @@ function App() {
 
 
         return (
-            <div className="min-h-screen text-white p-4">
+            <div className="min-h-screen text-white p-4 pb-20"> {/* Added pb-20 for bottom nav space */}
                 <div className="flex justify-between items-center mb-6">
-                    <button
-                        onClick={() => navigateToPage('home')}
-                        className="bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded-lg text-sm shadow-md transition duration-200"
-                    >
-                        &larr; Volver
-                    </button>
+                    {/* Botón de volver eliminado, ahora en la barra de navegación inferior */}
                     <h2 className="text-3xl font-bold text-white">Historial de Partidos</h2> {/* Título en blanco */}
                 </div>
 
@@ -1948,7 +2064,7 @@ function App() {
                                 <h3 className="text-xl font-bold text-white">
                                     {game.teamA.name} {game.teamA.score} - {game.teamB.name} {game.teamB.score}
                                 </h3>
-                                <p className="text-gray-400 text-sm">Fecha: {game.date} | Duración: {game.duration} | Cuartos: {game.quartersPlayed}/{game.totalQuarters}</p>
+                                <p className="text-gray-400 text-sm">Fecha: {game.date} | Duración: {game.duration} | Cuartos: {game.quartersPlayed}/{game.totalQuarters} {game.overtimePeriodsPlayed > 0 ? `| T. Extra: ${game.overtimePeriodsPlayed}` : ''}</p>
                             </div>
                         ))}
                     </div>
@@ -1960,7 +2076,7 @@ function App() {
                             <div className="flex justify-between items-center mb-4">
                                 <h3 className="text-2xl font-bold text-white">Detalles del Partido</h3>
                                 <button
-                                    onClick={() => setSelectedGame(null)}
+                                    onClick={() => setSelectedGame(null)} // Botón de cierre en la esquina superior derecha
                                     className="text-gray-400 hover:text-white text-3xl leading-none"
                                 >
                                     &times;
@@ -1969,7 +2085,7 @@ function App() {
 
                             <p className="text-gray-300 mb-2">Fecha: {selectedGame.date}</p>
                             <p className="text-gray-300 mb-2">Duración: {selectedGame.duration}</p>
-                            <p className="text-gray-300 mb-4">Cuartos: {selectedGame.quartersPlayed}/{selectedGame.totalQuarters}</p>
+                            <p className="text-gray-300 mb-4">Cuartos: {selectedGame.quartersPlayed}/{selectedGame.totalQuarters} {selectedGame.overtimePeriodsPlayed > 0 ? `| T. Extra: ${selectedGame.overtimePeriodsPlayed}` : ''}</p>
 
                             {/* Tabla de Puntos por Cuarto */}
                             {selectedGame.teamA.quarterScores && selectedGame.teamA.quarterScores.length > 0 && (
@@ -1983,21 +2099,24 @@ function App() {
                                                     {Array.from({ length: selectedGame.totalQuarters }).map((_, index) => (
                                                         <th key={index} className="py-3 px-2 text-center">C{index + 1}</th>
                                                     ))}
+                                                    {selectedGame.overtimePeriodsPlayed > 0 && Array.from({ length: selectedGame.overtimePeriodsPlayed }).map((_, index) => (
+                                                        <th key={`ot-${index}`} className="py-3 px-2 text-center">OT{index + 1}</th>
+                                                    ))}
                                                 </tr>
                                             </thead>
                                             <tbody className="text-gray-300 text-sm font-light">
                                                 <tr className="border-b border-gray-600 hover:bg-gray-600">
                                                     <td className="py-3 px-2 text-left whitespace-nowrap">{selectedGame.teamA.name}</td>
-                                                    {Array.from({ length: selectedGame.totalQuarters }).map((_, index) => (
-                                                        <td key={`teamA-q-${index}`} className="py-3 px-2 text-center">
+                                                    {Array.from({ length: selectedGame.totalQuarters + selectedGame.overtimePeriodsPlayed }).map((_, index) => (
+                                                        <td key={`teamA-qot-${index}`} className="py-3 px-2 text-center">
                                                             {selectedGame.teamA.quarterScores[index] !== undefined ? selectedGame.teamA.quarterScores[index] : 0}
                                                         </td>
                                                     ))}
                                                 </tr>
                                                 <tr className="border-b border-gray-600 hover:bg-gray-600">
                                                     <td className="py-3 px-2 text-left whitespace-nowrap">{selectedGame.teamB.name}</td>
-                                                    {Array.from({ length: selectedGame.totalQuarters }).map((_, index) => (
-                                                        <td key={`teamB-q-${index}`} className="py-3 px-2 text-center">
+                                                    {Array.from({ length: selectedGame.totalQuarters + selectedGame.overtimePeriodsPlayed }).map((_, index) => (
+                                                        <td key={`teamB-qot-${index}`} className="py-3 px-2 text-center">
                                                             {selectedGame.teamB.quarterScores[index] !== undefined ? selectedGame.teamB.quarterScores[index] : 0}
                                                         </td>
                                                     ))}
@@ -2111,22 +2230,81 @@ function App() {
                                     </table>
                                 </div>
                             </div>
-                            <button
-                                onClick={() => exportGameToCsv(selectedGame)}
-                                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-200 w-full mt-4"
-                            >
-                                Exportar a Excel (CSV)
-                            </button>
+                            <div className="flex flex-col sm:flex-row justify-between space-y-2 sm:space-y-0 sm:space-x-4 mt-4">
+                                <button
+                                    onClick={() => setSelectedGame(null)} // Nuevo botón "Volver"
+                                    className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-200 w-full sm:w-auto"
+                                >
+                                    Volver
+                                </button>
+                                <button
+                                    onClick={() => exportGameToCsv(selectedGame)}
+                                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-200 w-full sm:w-auto"
+                                >
+                                    Exportar a Excel (CSV)
+                                </button>
+                            </div>
                         </div>
                     </div>
                 )}
             </div>
         );
-    }, [history, navigateToPage]);
+    }, [history]);
 
     // Renderizado condicional de páginas
     return (
-        <div className="bg-gradient-to-br from-gray-900 via-black to-red-900"> {/* Aplicado el estilo global aquí */}
+        <div className="bg-gradient-to-br from-gray-900 via-black to-red-900 min-h-screen flex flex-col"> {/* Added flex-col to enable sticky footer */}
+            {/* Main content area, takes available space */}
+            <div className="flex-grow">
+                {page === 'home' && <HomePage />}
+                {page === 'setupGame' && <GameSetupPage />}
+                {page === 'game' &&
+                    <GamePage
+                        timer={timer} // Pasa el estado del timer
+                        setTimer={setTimer} // Pasa la función para actualizar el timer
+                        isRunning={isRunning} // Pasa el estado de isRunning
+                        setIsRunning={setIsRunning} // Pasa la función para actualizar isRunning
+                        timeUpMessage={timeUpMessage} // Pasa el mensaje de tiempo finalizado
+                        setTimeUpMessage={setTimeUpMessage} // Pasa la función para actualizar el mensaje
+                        localResetGame={localResetGame} // Pasa la función de reinicio
+                        initialGameTime={initialGameTime} // Se sigue pasando para el reset
+                        teamA={teamA} setTeamA={setTeamA}
+                        teamB={teamB} setTeamB={setTeamB}
+                        updatePlayerStat={updatePlayerStat}
+                        handleTeamUndo={handleTeamUndo}
+                        onEndGame={handleEndGame} // Pasamos la función de App para finalizar
+                        setShowRosterSelectionModalForTeam={setShowRosterSelectionModalForTeam}
+                        setShowPlayerStatsModal={setShowPlayerStatsModal}
+                        navigateToPage={navigateToPage} // Usar navigateToPage en lugar de setPage
+                        setAlertMessage={setAlertMessage}
+                        // rosterPlayers={rosterPlayers} <-- REMOVED, now using allRosterPlayers implicitly
+                        addPlayerToTeamFromRoster={addPlayerToTeamFromRoster}
+                        removePlayer={removePlayer}
+                        handlePlayerNameChange={handlePlayerNameChange}
+                        currentQuarter={currentQuarter} // Pasa el cuarto actual
+                        setCurrentQuarter={setCurrentQuarter} // Pasa la función para actualizar el cuarto
+                        totalQuarters={totalQuarters} // Pasa el total de cuartos
+                        allRosterPlayers={allRosterPlayers} // Pasa la lista de todos los jugadores
+                        addPlayerToGlobalRoster={addPlayerToGlobalRoster} // PASAMOS LAS FUNCIONES DE GESTIÓN
+                        updateGlobalPlayer={updateGlobalPlayer} // PASAMOS LAS FUNCIONES DE GESTIÓN
+                        removeGlobalPlayer={removeGlobalPlayer} // PASAMOS LAS FUNCIONES DE GESTIÓN
+                        overtimeDuration={overtimeDuration} // PASAMOS LA DURACIÓN DEL TIEMPO EXTRA
+                        currentOvertimePeriod={currentOvertimePeriod} // PASAMOS EL PERÍODO ACTUAL DE TIEMPO EXTRA
+                        setCurrentOvertimePeriod={setCurrentOvertimePeriod} // PASAMOS LA FUNCIÓN PARA ACTUALIZAR EL PERÍODO DE TIEMPO EXTRA
+                    />
+                }
+                {page === 'history' && <HistoryPage />}
+                {page === 'roster' && <RosterManagementPage />}
+            </div>
+
+            {/* Bottom Navigation Bar */}
+            <BottomNavigationBar
+                currentPage={page}
+                navigateToPage={navigateToPage}
+                hasUnfinishedGame={!!unfinishedGame} // Pass boolean if there's an unfinished game
+            />
+
+            <AlertDialog message={alertMessage} onClose={() => setAlertMessage('')} />
             {/* Custom styles for text stroke */}
             <style>
                 {`
@@ -2156,43 +2334,6 @@ function App() {
                 }
                 `}
             </style>
-            {page === 'home' && <HomePage />}
-            {page === 'setupGame' && <GameSetupPage />}
-            {page === 'game' &&
-                <GamePage
-                    timer={timer} // Pasa el estado del timer
-                    setTimer={setTimer} // Pasa la función para actualizar el timer
-                    isRunning={isRunning} // Pasa el estado de isRunning
-                    setIsRunning={setIsRunning} // Pasa la función para actualizar isRunning
-                    timeUpMessage={timeUpMessage} // Pasa el mensaje de tiempo finalizado
-                    setTimeUpMessage={setTimeUpMessage} // Pasa la función para actualizar el mensaje
-                    localResetGame={localResetGame} // Pasa la función de reinicio
-                    initialGameTime={initialGameTime} // Se sigue pasando para el reset
-                    teamA={teamA} setTeamA={setTeamA}
-                    teamB={teamB} setTeamB={setTeamB}
-                    updatePlayerStat={updatePlayerStat}
-                    handleTeamUndo={handleTeamUndo}
-                    onEndGame={handleEndGame} // Pasamos la función de App para finalizar
-                    setShowRosterSelectionModalForTeam={setShowRosterSelectionModalForTeam}
-                    setShowPlayerStatsModal={setShowPlayerStatsModal}
-                    navigateToPage={navigateToPage} // Usar navigateToPage en lugar de setPage
-                    setAlertMessage={setAlertMessage}
-                    // rosterPlayers={rosterPlayers} <-- REMOVED, now using allRosterPlayers implicitly
-                    addPlayerToTeamFromRoster={addPlayerToTeamFromRoster}
-                    removePlayer={removePlayer}
-                    handlePlayerNameChange={handlePlayerNameChange}
-                    currentQuarter={currentQuarter} // Pasa el cuarto actual
-                    setCurrentQuarter={setCurrentQuarter} // Pasa la función para actualizar el cuarto
-                    totalQuarters={totalQuarters} // Pasa el total de cuartos
-                    allRosterPlayers={allRosterPlayers} // Pasa la lista de todos los jugadores
-                    addPlayerToGlobalRoster={addPlayerToGlobalRoster} // PASAMOS LAS FUNCIONES DE GESTIÓN
-                    updateGlobalPlayer={updateGlobalPlayer} // PASAMOS LAS FUNCIONES DE GESTIÓN
-                    removeGlobalPlayer={removeGlobalPlayer} // PASAMOS LAS FUNCIONES DE GESTIÓN
-                />
-            }
-            {page === 'history' && <HistoryPage />}
-            {page === 'roster' && <RosterManagementPage />}
-            <AlertDialog message={alertMessage} onClose={() => setAlertMessage('')} />
         </div>
     );
 }
