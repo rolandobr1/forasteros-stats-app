@@ -102,9 +102,10 @@ const BottomNavigationBar = ({ currentPage, navigateToPage, hasUnfinishedGame })
                         currentPage === 'home' ? 'text-white bg-gray-700' : 'text-gray-400 hover:text-white hover:bg-gray-800'
                     }`}
                 >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
                     </svg>
+
                     <span className="mt-1 hidden sm:block">Inicio</span>
                 </button>
 
@@ -114,8 +115,12 @@ const BottomNavigationBar = ({ currentPage, navigateToPage, hasUnfinishedGame })
                     className={`flex flex-col items-center justify-center p-1 rounded-md text-sm font-medium transition duration-200 ${
                         currentPage === 'setupGame' ? 'text-white bg-gray-700' : 'text-gray-400 hover:text-white hover:bg-gray-800'
                     }`}
-                >
-                    <SettingsIcon size={24} color="currentColor" />
+                >    {/* Icono Configurar partido */}
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                    </svg>
+
                     <span className="mt-1 hidden sm:block">Configurar</span>
                 </button>
 
@@ -127,12 +132,10 @@ const BottomNavigationBar = ({ currentPage, navigateToPage, hasUnfinishedGame })
                     }`}
                 >
                     {/* Icono de Partido Actual (Play) */}
-                    <svg width="24" height="24" viewBox="0 0 64 64" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                        {/* Círculo exterior */}
-                        <circle cx="32" cy="32" r="30" fill="#4B5563" /> {/* Changed to match background theme */}
-                        {/* Triángulo "Play" central */}
-                        <polygon points="26,20 26,44 46,32" fill="white" />
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z" />
                     </svg>
+
                     <span className="mt-1 hidden sm:block">{hasUnfinishedGame ? 'Reanudar' : 'Partido Actual'}</span>
                 </button>
 
@@ -154,7 +157,9 @@ const BottomNavigationBar = ({ currentPage, navigateToPage, hasUnfinishedGame })
                         currentPage === 'roster' ? 'text-white bg-gray-700' : 'text-gray-400 hover:text-white hover:bg-gray-800'
                     }`}
                 >
-                    <ContactIcon size={24} color="currentColor" />
+                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
+                    </svg>
                     <span className="mt-1 hidden sm:block">Jugadores</span>
                 </button>
             </div>
@@ -184,6 +189,9 @@ function App() {
         return savedPlayers ? JSON.parse(savedPlayers) : [];
     });
     const [showRosterSelectionModalForTeam, setShowRosterSelectionModalForTeam] = useState(null); // 'Local' o 'Visitante' para el modal de selección
+    const [playerToSubOut, setPlayerToSubOut] = useState(null); // { playerId, teamId } of the player initiating a sub
+    const [showSubstitutionModal, setShowSubstitutionModal] = useState(false);
+
 
     // Estado para el AlertDialog
     const [alertMessage, setAlertMessage] = useState('');
@@ -209,7 +217,14 @@ function App() {
     });
 
     // NUEVO: Estado para las faltas antes de bonus
-    const [foulsBeforeBonus, setFoulsBeforeBonus] = useState(5); // Default 5 fouls before bonus
+    const [foulsBeforeBonus, setFoulsBeforeBonus] = useState(6); // Default 5 fouls before bonus
+
+    // NUEVO: Estado para controlar si el modal de selección de plantilla debe abrirse al cargar la página de juego
+    const [shouldOpenInitialRosterSelection, setShouldOpenInitialRosterSelection] = useState(false);
+
+    // NUEVO: Estado para controlar la posición de los equipos en la pantalla (izquierda/derecha)
+    const [isTeamASideLeft, setIsTeamASideLeft] = useState(true);
+
 
     // Efecto para el temporizador, ahora en App
     useEffect(() => {
@@ -241,6 +256,7 @@ function App() {
         // Resetear también los scores y faltas por cuarto
         setTeamA(prev => ({ ...prev, currentQuarterScore: 0, allQuarterScores: [], currentQuarterFouls: 0 }));
         setTeamB(prev => ({ ...prev, currentQuarterScore: 0, allQuarterScores: [], currentQuarterFouls: 0 }));
+        setIsTeamASideLeft(true); // Resetear la posición de los equipos
     }, [initialGameTime]);
 
     // Efecto para guardar historial en localStorage
@@ -269,6 +285,7 @@ function App() {
                     overtimeDuration: overtimeDuration, // Guardar duración de tiempo extra
                     currentOvertimePeriod: currentOvertimePeriod, // Guardar período de tiempo extra
                     foulsBeforeBonus: foulsBeforeBonus, // Guardar faltas antes de bonus
+                    isTeamASideLeft: isTeamASideLeft, // Guardar la posición de los equipos
                 };
                 localStorage.setItem('forasterosUnfinishedGame', JSON.stringify(currentGameState));
             }
@@ -285,7 +302,7 @@ function App() {
         return () => {
             window.removeEventListener('beforeunload', saveCurrentGameState);
         };
-    }, [page, teamA, teamB, timer, isRunning, currentQuarter, totalQuarters, initialGameTime, overtimeDuration, currentOvertimePeriod, unfinishedGame, foulsBeforeBonus]);
+    }, [page, teamA, teamB, timer, isRunning, currentQuarter, totalQuarters, initialGameTime, overtimeDuration, currentOvertimePeriod, unfinishedGame, foulsBeforeBonus, isTeamASideLeft]);
 
 
     // NUEVO: Función para navegar entre páginas, guardando el estado del partido si es necesario
@@ -302,12 +319,13 @@ function App() {
                 overtimeDuration: overtimeDuration,
                 currentOvertimePeriod: currentOvertimePeriod,
                 foulsBeforeBonus: foulsBeforeBonus, // Guardar faltas antes de bonus
+                isTeamASideLeft: isTeamASideLeft, // Guardar la posición de los equipos
             };
             localStorage.setItem('forasterosUnfinishedGame', JSON.stringify(currentGameState));
             setUnfinishedGame(currentGameState); // Actualizar el estado local también
         }
         setPage(newPage);
-    }, [page, teamA, teamB, timer, isRunning, currentQuarter, totalQuarters, initialGameTime, overtimeDuration, currentOvertimePeriod, foulsBeforeBonus]);
+    }, [page, teamA, teamB, timer, isRunning, currentQuarter, totalQuarters, initialGameTime, overtimeDuration, currentOvertimePeriod, foulsBeforeBonus, isTeamASideLeft]);
 
 
     // NUEVO: Función para reanudar un partido
@@ -323,12 +341,13 @@ function App() {
             setOvertimeDuration(unfinishedGame.overtimeDuration || (5 * 60)); // Default if not saved
             setCurrentOvertimePeriod(unfinishedGame.currentOvertimePeriod || 0); // Default if not saved
             setFoulsBeforeBonus(unfinishedGame.foulsBeforeBonus || 5); // Default if not saved
+            setIsTeamASideLeft(unfinishedGame.isTeamASideLeft !== undefined ? unfinishedGame.isTeamASideLeft : true); // Load position
             setPage('game');
             setAlertMessage('Partido reanudado.');
         } else {
             setAlertMessage('No hay partido para reanudar.');
         }
-    }, [unfinishedGame, setTeamA, setTeamB, setTimer, setIsRunning, setCurrentQuarter, setTotalQuarters, setInitialGameTime, setOvertimeDuration, setCurrentOvertimePeriod, setFoulsBeforeBonus, setPage, setAlertMessage]);
+    }, [unfinishedGame, setTeamA, setTeamB, setTimer, setIsRunning, setCurrentQuarter, setTotalQuarters, setInitialGameTime, setOvertimeDuration, setCurrentOvertimePeriod, setFoulsBeforeBonus, setPage, setAlertMessage, setIsTeamASideLeft]);
 
 
     // NUEVO: Función para añadir un jugador a la lista global
@@ -368,54 +387,78 @@ function App() {
         setAllPlayers(newPlayersOrder);
     }, []);
 
+    // MODIFICADO: Función para añadir jugadores del roster (global) a un equipo de juego (ahora acepta array)
+    const addPlayersToTeamFromRoster = useCallback((teamId, rosterPlayersToAdd) => {
+        const setTeamState = teamId === teamA.name ? setTeamA : setTeamB;
 
-    // Función para añadir un jugador del roster (global) a un equipo de juego
-    const addPlayerToTeamFromRoster = useCallback((teamId, rosterPlayer) => {
-        const newPlayer = {
-            id: crypto.randomUUID(), // Nuevo ID único para la instancia del juego
-            name: rosterPlayer.name,
-            jersey: rosterPlayer.jersey,
-            score: 0,
-            rebounds: 0,
-            assists: 0,
-            steals: 0,
-            blocks: 0,
-            turnovers: 0,
-            fouls: 0,
-            made2pt: 0,
-            missed2pt: 0,
-            made3pt: 0,
-            missed3pt: 0,
-            madeFT: 0,
-            missedFT: 0,
-        };
+        setTeamState(prev => {
+            let currentPlayersCount = prev.players.filter(p => p.isOnCourt).length; // Count players already on court
+            const newPlayers = rosterPlayersToAdd.map(rosterPlayer => {
+                // Check if player is already in the team (by jersey)
+                if (prev.players.some(p => p.jersey === rosterPlayer.jersey)) {
+                    setAlertMessage(`El jugador con el número ${rosterPlayer.jersey} ya está en este equipo.`);
+                    return null; // Don't add this player
+                }
 
-        if (teamId === teamA.name) {
-            setTeamA(prev => {
-                if (prev.players.some(p => p.jersey === newPlayer.jersey)) {
-                    setAlertMessage(`El jugador con el número ${newPlayer.jersey} ya está en este equipo.`);
-                    return prev;
+                const isOnCourt = currentPlayersCount < 5; // First 5 go to court
+                if (isOnCourt) {
+                    currentPlayersCount++; // Increment count for court players
                 }
-                return { ...prev, players: [...prev.players, newPlayer] };
-            });
-        } else {
-            setTeamB(prev => {
-                if (prev.players.some(p => p.jersey === newPlayer.jersey)) {
-                    setAlertMessage(`El jugador con el número ${newPlayer.jersey} ya está en este equipo.`);
-                    return prev;
-                }
-                return { ...prev, players: [...prev.players, newPlayer] };
-            });
-        }
+
+                return {
+                    id: crypto.randomUUID(), // Nuevo ID único para la instancia del juego
+                    name: rosterPlayer.name,
+                    jersey: rosterPlayer.jersey,
+                    score: 0,
+                    rebounds: 0,
+                    assists: 0,
+                    steals: 0,
+                    blocks: 0,
+                    turnovers: 0,
+                    fouls: 0,
+                    made2pt: 0,
+                    missed2pt: 0,
+                    made3pt: 0,
+                    missed3pt: 0,
+                    madeFT: 0,
+                    missedFT: 0,
+                    isOnCourt: isOnCourt, // New property
+                };
+            }).filter(p => p !== null); // Remove nulls from players already in team
+
+            return { ...prev, players: [...prev.players, ...newPlayers] };
+        });
         setShowRosterSelectionModalForTeam(null);
     }, [setTeamA, setTeamB, setAlertMessage, setShowRosterSelectionModalForTeam]);
+
 
     // Función para eliminar un jugador del equipo de juego
     const removePlayer = useCallback((teamId, playerId) => {
         if (teamId === teamA.name) {
-            setTeamA(prev => ({ ...prev, players: prev.players.filter(p => p.id !== playerId) }));
+            setTeamA(prev => {
+                const updatedPlayers = prev.players.filter(p => p.id !== playerId);
+                // If a player was removed from court, try to bring one from bench if available
+                const onCourtCount = updatedPlayers.filter(p => p.isOnCourt).length;
+                if (onCourtCount < 5) {
+                    const firstBenchPlayerIndex = updatedPlayers.findIndex(p => !p.isOnCourt);
+                    if (firstBenchPlayerIndex !== -1) {
+                        updatedPlayers[firstBenchPlayerIndex] = { ...updatedPlayers[firstBenchPlayerIndex], isOnCourt: true };
+                    }
+                }
+                return { ...prev, players: updatedPlayers };
+            });
         } else {
-            setTeamB(prev => ({ ...prev, players: prev.players.filter(p => p.id !== playerId) }));
+            setTeamB(prev => {
+                const updatedPlayers = prev.players.filter(p => p.id !== playerId);
+                const onCourtCount = updatedPlayers.filter(p => p.isOnCourt).length;
+                if (onCourtCount < 5) {
+                    const firstBenchPlayerIndex = updatedPlayers.findIndex(p => !p.isOnCourt);
+                    if (firstBenchPlayerIndex !== -1) {
+                        updatedPlayers[firstBenchPlayerIndex] = { ...updatedPlayers[firstBenchPlayerIndex], isOnCourt: true };
+                    }
+                }
+                return { ...prev, players: updatedPlayers };
+            });
         }
     }, [setTeamA, setTeamB]);
 
@@ -447,6 +490,12 @@ function App() {
                 console.error(`Player with ID ${playerId} no encontrado en el equipo ${prevTeam.name}.`);
                 return prevTeam;
             }
+            // Solo permitir actualización de estadísticas si el jugador está en cancha
+            if (!playerToUpdate.isOnCourt) {
+                setAlertMessage(`No se pueden actualizar estadísticas de ${playerToUpdate.name} porque está en la banca.`);
+                return prevTeam;
+            }
+
             const prevPlayerState = { ...playerToUpdate };
             let scoreChange = 0; // Track score change for the current quarter
             let foulChange = 0; // Track foul change for the current quarter
@@ -529,6 +578,9 @@ function App() {
         setTeamB({ name: 'Visitante', players: [], lastAction: null, currentQuarterScore: 0, allQuarterScores: [], currentQuarterFouls: 0 });
         setShowPlayerStatsModal(null);
         setShowRosterSelectionModalForTeam(null);
+        setPlayerToSubOut(null);
+        setShowSubstitutionModal(false);
+        setIsTeamASideLeft(true); // Resetear la posición de los equipos
     }, []);
 
     // Función para generar jugadores por defecto - AHORA SIEMPRE RETORNA UN ARRAY VACÍO AL INICIO DE UN PARTIDO
@@ -595,6 +647,44 @@ function App() {
         return allPlayers; // Ahora es directamente allPlayers
     }, [allPlayers]);
 
+    // NUEVO: Función para iniciar una sustitución
+    const initiateSubstitution = useCallback((teamId, playerId) => {
+        setPlayerToSubOut({ teamId, playerId });
+        setShowSubstitutionModal(true);
+    }, []);
+
+    // NUEVO: Función para confirmar la sustitución
+    const confirmSubstitution = useCallback((teamId, player1Id, player2Id) => {
+        const setTeamState = teamId === teamA.name ? setTeamA : setTeamB;
+
+        setTeamState(prevTeam => {
+            const updatedPlayers = prevTeam.players.map(player => {
+                if (player.id === player1Id) {
+                    return { ...player, isOnCourt: !player.isOnCourt };
+                }
+                if (player.id === player2Id) {
+                    return { ...player, isOnCourt: !player.isOnCourt };
+                }
+                return player;
+            });
+            return { ...prevTeam, players: updatedPlayers };
+        });
+        setShowSubstitutionModal(false);
+        setPlayerToSubOut(null);
+        setAlertMessage('Sustitución realizada.');
+    }, [teamA, teamB, setTeamA, setTeamB, setAlertMessage]);
+
+    // NUEVO: Función para cambiar la posición de los equipos en la pantalla
+    const handleSwapTeamsDisplay = useCallback(() => {
+        setIsTeamASideLeft(prev => !prev);
+        setAlertMessage('Posición de equipos en pantalla cambiada.');
+    }, [setIsTeamASideLeft, setAlertMessage]);
+
+    // NUEVO: Combine players from both teams for the selection modal
+    const allPlayersCurrentlyInGame = useMemo(() => {
+        return [...teamA.players, ...teamB.players];
+    }, [teamA.players, teamB.players]);
+
 
     // Componente para la página de inicio
     const HomePage = useCallback(() => (
@@ -615,7 +705,35 @@ function App() {
                         <span className="block text-xl font-semibold">Nuevo Partido</span>
                         <span className="block text-sm text-gray-400 font-normal">Configura y empieza un nuevo partido.</span>
                     </div>
-                    <SettingsIcon size={32} color="currentColor" className="flex-shrink-0 ml-4" />
+                    <svg
+                        className="size-6 flex-shrink-0 ml-4"
+                        version="1.1"
+                        viewBox="0 0 64 64"
+                        xmlns="http://www.w3.org/2000/svg"
+                    >
+                        <g id="basketball">
+                            <path fill="currentColor" d="M59.5,22.7c-2.9-8.5-9.7-15.3-18.1-18.1c-6-2-12.7-2-18.6,0C14.2,7.4,7.4,14.2,4.5,22.7c-1,3-1.5,6.1-1.5,9.3   s0.5,6.3,1.5,9.3c2.9,8.5,9.6,15.3,18.1,18.1c3,1,6.1,1.5,9.3,1.5s6.3-0.5,9.3-1.5c8.5-2.9,15.3-9.6,18.1-18.1c1-3,1.5-6.1,1.5-9.3   S60.5,25.7,59.5,22.7z M58.5,37c-15-0.7-30.3-1.5-42-4.1c0-2,0.2-4,0.6-6.1c0.6,0.1,1.3,0.2,1.9,0.2c2.1,0,4.2-0.7,6.4-2.1   c11.8-7.5,22.2-8.2,31.8-2.1c0.1,0.2,0.1,0.4,0.2,0.5c1,2.8,1.4,5.7,1.4,8.7C59,33.7,58.8,35.3,58.5,37z M56,19.7   c-9.7-5-20-3.9-31.6,3.4c-2.4,1.6-4.7,2.1-6.8,1.6c1.8-7,6.1-14,14.6-19.8c2.9,0,5.7,0.5,8.4,1.4C47.3,8.7,52.9,13.5,56,19.7z   M23.3,6.4c1.7-0.6,3.5-1,5.3-1.2c-7.3,5.7-11.1,12.3-12.8,18.8c-3.9-2.1-5.8-7.3-5.8-7.4c0,0,0-0.1-0.1-0.1   C13.1,11.9,17.8,8.3,23.3,6.4z M8.6,18.6c0.9,2,3.1,5.8,6.7,7.5c-0.4,2.1-0.6,4.2-0.7,6.3c-3.4-0.9-6.5-1.9-9.1-3.2   c-0.1,0-0.2-0.1-0.3-0.1c0.2-2,0.6-3.9,1.3-5.7C7,21.7,7.7,20.1,8.6,18.6z M5,31.1c2.8,1.3,6,2.4,9.5,3.3c0,1.5,0.1,3,0.3,4.5   c-3.9-0.1-6.9,1.9-8,2.9c-0.1-0.4-0.3-0.7-0.4-1.1C5.5,37.9,5,35,5,32C5,31.7,5,31.4,5,31.1z M7.7,43.7C7.7,43.7,7.7,43.7,7.7,43.7   c0.2-0.2,3.3-3.1,7.5-2.8c1.1,6.7,3.4,12.2,4.8,15.2C14.6,53.5,10.2,49.1,7.7,43.7z M40.7,57.6c-5.5,1.9-11.8,1.9-17.4,0   c-0.2-0.1-0.4-0.1-0.5-0.2c-0.6-1-4-7.5-5.5-16c1.3,0.4,2.7,1.2,4.1,2.4c0.8,0.7,1.5,1.3,2.2,1.9c5.7,5,10,8.8,20.1,8.8   c1.1,0,2.3-0.1,3.5-0.1C45.2,55.7,43,56.8,40.7,57.6z M50.1,52c-0.1,0-0.1,0-0.2,0c-14,1.8-18.4-2.1-25-7.9   c-0.7-0.6-1.4-1.3-2.2-1.9c-2-1.7-3.9-2.6-5.7-3c-0.2-1.4-0.3-2.8-0.3-4.3c11.7,2.6,26.8,3.4,41.5,4.1c-0.2,0.6-0.3,1.2-0.5,1.7   C56.1,45.1,53.5,49,50.1,52z"/>
+                        </g>
+                        <g id="field"/>
+                        <g id="basket"/>
+                        <g id="trophy"/>
+                        <g id="league_1_"/>
+                        <g id="player"/>
+                        <g id="uniform_1_"/>
+                        <g id="scoreboard"/>
+                        <g id="medal"/>
+                        <g id="shoe_1_"/>
+                        <g id="ticket_1_"/>
+                        <g id="event_1_"/>
+                        <g id="time"/>
+                        <g id="strategy_1_"/>
+                        <g id="supporter"/>
+                        <g id="whistle"/>
+                        <g id="podium"/>
+                        <g id="bag"/>
+                        <g id="bottle"/>
+                        <g id="badge"/>
+                    </svg>
                 </button>
 
                 {/* Continuar Partido */}
@@ -628,12 +746,10 @@ function App() {
                             <span className="block text-xl font-semibold">Continuar Partido</span>
                             <span className="block text-sm text-gray-400 font-normal">Reanuda el último partido en curso.</span>
                         </div>
-                        <svg width="32" height="32" viewBox="0 0 64 64" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className="text-white flex-shrink-0 ml-4">
-                            {/* Círculo exterior */}
-                            <circle cx="32" cy="32" r="30" fill="#4B5563" />
-                            {/* Triángulo "Play" central */}
-                            <polygon points="26,20 26,44 46,32" fill="white" />
-                        </svg>
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                     </svg>
+
                     </button>
                 )}
 
@@ -660,8 +776,8 @@ function App() {
                         <span className="block text-xl font-semibold">Gestionar Jugadores</span>
                         <span className="block text-sm text-gray-400 font-normal">Crea y edita tus plantillas de jugadores.</span>
                     </div>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24" className="flex-shrink-0 ml-4">
-                        <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
+                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
                     </svg>
                 </button>
             </div>
@@ -702,7 +818,16 @@ function App() {
             setCurrentQuarter(1); // Inicia en el primer cuarto
             setCurrentOvertimePeriod(0); // Reinicia los tiempos extra
             resetGamePlayersAndModals(); // Reset players before starting new game
-            navigateToPage('game'); // Navigate to game page
+            setIsTeamASideLeft(true); // Reinicia la posición de los equipos al iniciar un nuevo partido
+
+            // NUEVA LÓGICA: Redirigir si no hay jugadores o abrir modal de selección
+            if (allPlayers.length === 0) {
+                setAlertMessage("No hay jugadores registrados. Por favor, añade jugadores a tu plantilla antes de iniciar un partido.");
+                navigateToPage('roster'); // Redirigir a la página de gestión de jugadores
+            } else {
+                setShouldOpenInitialRosterSelection(true); // Indicar que el modal debe abrirse en GamePage
+                navigateToPage('game'); // Navegar a la página del partido
+            }
         };
 
         return (
@@ -742,7 +867,7 @@ function App() {
                         id="fouls-before-bonus"
                         type="number"
                         value={bonusFouls}
-                        onChange={(e) => setFoulsBeforeBonus(parseInt(e.target.value) || 0)}
+                        onChange={(e) => setBonusFouls(parseInt(e.target.value) || 0)}
                         min="0"
                         className="w-full p-3 rounded-md bg-gray-700 text-white text-center text-2xl font-normal focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
@@ -756,7 +881,7 @@ function App() {
                 </div>
             </div>
         );
-    }, [initialGameTime, totalQuarters, overtimeDuration, foulsBeforeBonus, resetGamePlayersAndModals, setAlertMessage, setInitialGameTime, navigateToPage, setTimer, setTotalQuarters, setOvertimeDuration, setFoulsBeforeBonus, setCurrentQuarter, setCurrentOvertimePeriod]);
+    }, [initialGameTime, totalQuarters, overtimeDuration, foulsBeforeBonus, resetGamePlayersAndModals, setAlertMessage, setInitialGameTime, navigateToPage, setTimer, setTotalQuarters, setOvertimeDuration, setFoulsBeforeBonus, setCurrentQuarter, setCurrentOvertimePeriod, allPlayers.length, setShouldOpenInitialRosterSelection, setIsTeamASideLeft]);
 
     // Componente para la página de gestión de jugadores (antes RosterManagementPage)
     const RosterManagementPage = useCallback(() => {
@@ -943,7 +1068,7 @@ function App() {
                         />
                         <button
                             type="submit"
-                            className="bg-green-600 hover:bg-green-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-xl font-normal shadow-md transition duration-200 flex-shrink-0"
+                            className="bg-green-600 hover:bg-green-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-lg font-normal shadow-md transition duration-200 flex-shrink-0" /* Changed text-xl to text-lg */
                             title="Añadir Jugador"
                         >
                             +
@@ -1030,10 +1155,13 @@ function App() {
 
 
     // New component for a single player row
-    const PlayerRow = React.memo(({ player, teamId, isRunning, updatePlayerStat, removePlayer, handlePlayerNameChange, setShowPlayerStatsModal }) => {
+    const PlayerRow = React.memo(({ player, teamId, isRunning, updatePlayerStat, removePlayer, setShowPlayerStatsModal, onInitiateSubstitution }) => {
         const [localPlayerName, setLocalPlayerName] = useState(player.name);
         const [pressTimerId, setPressTimerId] = useState(null); // Local state for long press timer
         const longPressThreshold = 1000; // 1 second
+        // Nuevo estado para controlar el modal de confirmación de eliminación
+        const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
+
 
         // Update local state if player.name changes from parent (e.g., initial load or undo)
         useEffect(() => {
@@ -1103,7 +1231,7 @@ function App() {
                     <button
                         onClick={(e) => {
                             e.stopPropagation();
-                            removePlayer(teamId, player.id);
+                            setShowConfirmDeleteModal(true); // Mostrar modal de confirmación
                         }}
                         className="rounded-full bg-red-600 hover:bg-red-700 text-white w-7 h-7 flex items-center justify-center text-sm font-normal transition duration-200 flex-shrink-0 shadow-sm"
                         title="Eliminar Jugador del Partido"
@@ -1129,6 +1257,16 @@ function App() {
                             cursor-default // Cambiado a cursor-default ya que no es editable
                         `}
                     />
+                    {/* Botón de cambio de jugador */}
+                    <button
+                        onClick={() => onInitiateSubstitution(teamId, player.id)}
+                        className="bg-purple-600 hover:bg-purple-700 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm font-normal shadow-md transition duration-200 flex-shrink-0"
+                        title="Cambiar Jugador"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h18m-15-6L3 7.5m0 0L7.5 3M3 7.5h18" />
+                        </svg>
+                    </button>
                 </div>
 
                 {/* Estadísticas del Jugador: Puntos, Faltas */}
@@ -1151,48 +1289,64 @@ function App() {
                     onTouchStart={handleButtonPressStart}
                     onTouchEnd={handleButtonPressEnd}
                     onTouchCancel={handleButtonPressCancel}
-                    className="bg-gray-700 hover:bg-gray-600 text-white rounded-md px-3 py-2 text-sm font-normal shadow-md transition duration-200 flex-shrink-0"
-                    title="Ver Estadísticas del Jugador"
+                    disabled={!player.isOnCourt} // Deshabilitar si no está en cancha
+                    className={`bg-gray-700 text-white rounded-md px-3 py-2 text-sm font-normal shadow-md transition duration-200 flex-shrink-0 ${!player.isOnCourt ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-600'}`}
+                    title={!player.isOnCourt ? "Jugador en banca, no se pueden actualizar estadísticas" : "Ver Estadísticas del Jugador"}
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M4 20h4V10H4v10zm6 0h4V4h-4v16zm6 0h4V14h-4v6z"/>
                     </svg>
                 </button>
+
+                {showConfirmDeleteModal && (
+                    <ConfirmDialog
+                        message={`¿Estás seguro de que quieres eliminar a ${player.name} del equipo?`}
+                        onConfirm={() => {
+                            removePlayer(teamId, player.id);
+                            setShowConfirmDeleteModal(false);
+                        }}
+                        onCancel={() => setShowConfirmDeleteModal(false)}
+                    />
+                )}
             </div>
         );
     });
 
     // Componente para la página del juego
     const GamePage = React.memo(({
-        timer, setIsRunning, isRunning, timeUpMessage, setTimeUpMessage, localResetGame, // Recibe del App
+        timer, setIsRunning, isRunning, timeUpMessage, setTimeUpMessage, localResetGame,
         teamA, setTeamA, teamB, setTeamB,
         updatePlayerStat, handleTeamUndo, onEndGame,
-        setShowRosterSelectionModalForTeam, setShowPlayerStatsModal, // Pass setShowPlayerStatsModal
-        navigateToPage, setAlertMessage, // rosterPlayers,  <-- REMOVED, now using allRosterPlayers implicitly
-        addPlayerToTeamFromRoster, removePlayer, handlePlayerNameChange, // handlePlayerNameChange ya no se usa para edición in-game
+        setShowRosterSelectionModalForTeam, setShowPlayerStatsModal,
+        navigateToPage, setAlertMessage,
+        addPlayersToTeamFromRoster, removePlayer,
         currentQuarter, setCurrentQuarter, totalQuarters, initialGameTime, setTimer,
-        allRosterPlayers, // Pasamos allRosterPlayers para verificar si está vacío
-        addPlayerToGlobalRoster, updateGlobalPlayer, removeGlobalPlayer, // PASAMOS LAS FUNCIONES DE GESTIÓN DE JUGADORES
-        overtimeDuration, currentOvertimePeriod, setCurrentOvertimePeriod, // NUEVOS PROPS PARA TIEMPO EXTRA
-        foulsBeforeBonus // NUEVO: Faltas antes de bonus
+        allRosterPlayers,
+        addPlayerToGlobalRoster, updateGlobalPlayer, removeGlobalPlayer,
+        overtimeDuration, currentOvertimePeriod, setCurrentOvertimePeriod,
+        foulsBeforeBonus,
+        initiateSubstitution, confirmSubstitution, playerToSubOut, showSubstitutionModal,
+        shouldOpenInitialRosterSelection, setShouldOpenInitialRosterSelection,
+        isTeamASideLeft, handleSwapTeamsDisplay,
+        allPlayersCurrentlyInGame // Receive the new prop here
     }) => {
         // NUEVO: Estado para controlar la visibilidad del modal de la plantilla
         const [showRosterViewModal, setShowRosterViewModal] = useState(false);
 
-        // Lista de nombres aleatorios para jugadores genéricos - ESTA FUNCIÓN YA NO SE UTILIZARÁ
-        const randomGenericNames = useMemo(() => [
-            "Jugador Genérico 1", "Estrella Aleatoria", "Novato Prometedor", "As del Balón",
-            "Defensor Feroz", "Tirador Preciso", "Rebotero Maestro", "Asistente Clave",
-            "MVP Sorpresa", "Talento Oculto", "Velocista", "Gigante de la Cancha",
-            "Mago del Balón", "Capitán Anónimo", "El Increíble", "Fuerza Bruta"
-        ], []);
+        // Efecto para abrir el modal de selección de jugadores al cargar la página de juego
+        useEffect(() => {
+            if (shouldOpenInitialRosterSelection && teamA.players.length === 0) {
+                setShowRosterSelectionModalForTeam('Local');
+                setShouldOpenInitialRosterSelection(false); // Resetear para que no se abra de nuevo
+            }
+        }, [shouldOpenInitialRosterSelection, setShowRosterSelectionModalForTeam, setShouldOpenInitialRosterSelection, teamA.players.length]);
 
-        // Función para añadir un jugador genérico directamente al equipo - ESTA FUNCIÓN YA NO SE UTILIZARÁ
-        const addGenericPlayerToTeamLocal = useCallback((teamId) => {
-            // Esta función ya no es necesaria, ya que los jugadores solo se añadirán desde el roster global.
-            // Se mantiene aquí para evitar errores si se llamaba desde algún lugar, pero su lógica no se ejecutará.
-            setAlertMessage("La adición de jugadores genéricos ha sido deshabilitada. Por favor, añade jugadores desde la lista global.");
-        }, [setAlertMessage]);
+
+        // Separar jugadores en cancha y en banca
+        const teamAOnCourt = teamA.players.filter(p => p.isOnCourt);
+        const teamABench = teamA.players.filter(p => !p.isOnCourt);
+        const teamBOnCourt = teamB.players.filter(p => p.isOnCourt);
+        const teamBBench = teamB.players.filter(p => !p.isOnCourt);
 
         const currentScoreA = teamA.players.reduce((acc, p) => acc + p.score, 0);
         const currentScoreB = teamB.players.reduce((acc, p) => acc + p.score, 0);
@@ -1203,6 +1357,20 @@ function App() {
         // Determinar si los equipos están en bonus
         const teamABonus = currentQuarterFoulsA >= foulsBeforeBonus;
         const teamBBonus = currentQuarterFoulsB >= foulsBeforeBonus;
+
+        // Determinar qué equipo va a la izquierda y cuál a la derecha
+        const leftTeam = isTeamASideLeft ? teamA : teamB;
+        const rightTeam = isTeamASideLeft ? teamB : teamA;
+        const leftTeamOnCourt = isTeamASideLeft ? teamAOnCourt : teamBOnCourt;
+        const leftTeamBench = isTeamASideLeft ? teamABench : teamBBench;
+        const rightTeamOnCourt = isTeamASideLeft ? teamBOnCourt : teamAOnCourt;
+        const rightTeamBench = isTeamASideLeft ? teamBBench : teamABench;
+        const leftTeamScore = isTeamASideLeft ? currentScoreA : currentScoreB;
+        const rightTeamScore = isTeamASideLeft ? currentScoreB : currentScoreA;
+        const leftTeamFouls = isTeamASideLeft ? currentQuarterFoulsA : currentQuarterFoulsB;
+        const rightTeamFouls = isTeamASideLeft ? currentQuarterFoulsB : currentQuarterFoulsA;
+        const leftTeamBonus = isTeamASideLeft ? teamBBonus : teamABonus; // Bonus applies to the *other* team's fouls
+        const rightTeamBonus = isTeamASideLeft ? teamABonus : teamBBonus;
 
 
         // Función para avanzar al siguiente cuarto o iniciar tiempo extra
@@ -1250,6 +1418,18 @@ function App() {
             }
         }, [currentQuarter, totalQuarters, initialGameTime, overtimeDuration, teamA, teamB, setCurrentQuarter, setTimer, setIsRunning, setTimeUpMessage, setTeamA, setTeamB, setCurrentOvertimePeriod, onEndGame, setAlertMessage, currentOvertimePeriod]);
 
+        // Manejador para el botón de Iniciar/Pausar el temporizador
+        const handleToggleTimer = useCallback(() => {
+            if (!isRunning) { // Si el temporizador está pausado y se intenta iniciar
+                // Validar que haya al menos 5 jugadores por equipo
+                if (teamA.players.filter(p => p.isOnCourt).length < 5 || teamB.players.filter(p => p.isOnCourt).length < 5) {
+                    setAlertMessage("Cada equipo debe tener al menos 5 jugadores en cancha para iniciar el partido.");
+                    return; // No iniciar el temporizador
+                }
+            }
+            setIsRunning(!isRunning); // Toggle el estado de ejecución
+        }, [isRunning, teamA.players, teamB.players, setIsRunning, setAlertMessage]);
+
 
         return (
             <div className="min-h-screen text-white p-4 pb-20">
@@ -1270,7 +1450,7 @@ function App() {
                 {/* Controles del temporizador */}
                 <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4 mb-6">
                     <button
-                        onClick={() => setIsRunning(!isRunning)}
+                        onClick={handleToggleTimer} // Usar el nuevo manejador
                         className={`py-2 px-6 rounded-lg font-normal text-lg shadow-lg transition duration-200 w-full sm:w-auto ${
                             isRunning ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-green-600 hover:bg-green-700'
                         }`}
@@ -1305,34 +1485,51 @@ function App() {
                     </div>
                 )}
 
-                {/* Marcador y Faltas Totales - REDUCIDO EL TAMAÑO */}
-                <div className="flex justify-around items-center bg-gray-800 p-3 rounded-lg shadow-xl mb-6">
+                {/* Marcador y Faltas Totales - AHORA CON BOTÓN DE INTERCAMBIO */}
+                <div className="flex justify-around items-center bg-gray-800 p-3 rounded-lg shadow-xl mb-6 relative">
+                    {/* Equipo Izquierdo */}
                     <div className="flex flex-col items-center">
-                        <h3 className="text-xl font-semibold text-blue-300">{teamA.name}: {currentScoreA}</h3>
-                        <p className="text-sm text-gray-400 font-normal">Faltas: {currentQuarterFoulsA}</p>
-                        {teamBBonus && <span className="text-yellow-400 text-sm font-normal mt-1">BONUS</span>}
+                        <h3 className={`text-xl font-semibold ${isTeamASideLeft ? 'text-blue-300' : 'text-red-300'}`}>
+                            {leftTeam.name}: {leftTeamScore}
+                        </h3>
+                        <p className="text-sm text-gray-400 font-normal">Faltas: {leftTeamFouls}</p>
+                        {leftTeamBonus && <span className="text-yellow-400 text-sm font-normal mt-1">BONUS</span>}
                     </div>
-                    <span className="text-2xl font-normal text-white mx-2">-</span>
+
+                    {/* Botón de Intercambio */}
+                    <button
+                        onClick={handleSwapTeamsDisplay}
+                        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-700 hover:bg-gray-600 text-white rounded-full w-10 h-10 flex items-center justify-center text-lg font-normal shadow-md transition duration-200 z-10"
+                        title="Cambiar lados de la cancha"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="size-5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h18m-15-6L3 7.5m0 0L7.5 3M3 7.5h18" />
+                        </svg>
+                    </button>
+
+                    {/* Equipo Derecho (dinámico) */}
                     <div className="flex flex-col items-center">
-                        <h3 className="text-xl font-semibold text-red-300">{teamB.name}: {currentScoreB}</h3>
-                        <p className="text-sm text-gray-400 font-normal">Faltas: {currentQuarterFoulsB}</p>
-                        {teamABonus && <span className="text-yellow-400 text-sm font-normal mt-1">BONUS</span>}
+                        <h3 className={`text-xl font-semibold ${isTeamASideLeft ? 'text-red-300' : 'text-blue-300'}`}>
+                            {rightTeam.name}: {rightTeamScore}
+                        </h3>
+                        <p className="text-sm text-gray-400 font-normal">Faltas: {rightTeamFouls}</p>
+                        {rightTeamBonus && <span className="text-yellow-400 text-sm font-normal mt-1">BONUS</span>}
                     </div>
                 </div>
 
                 {/* MODIFICADO: Listas de jugadores de ambos equipos - Adaptable a móvil y escritorio */}
-                {/* Cambiado a 'flex' para que siempre estén lado a lado, y 'w-1/2' para que cada uno ocupe la mitad */}
-                <div className="flex space-x-6">
-                    {/* Equipo Local */}
-                    <div className="w-1/2 bg-gray-800 p-4 rounded-lg shadow-lg">
+                {/* APLICANDO CORRECCIÓN: Usar flex-1 en lugar de w-1/2 para evitar overflow con space-x */}
+                <div className="flex space-x-4 sm:space-x-6"> {/* Ajustado space-x para pantallas pequeñas */}
+                    {/* Equipo Izquierdo (dinámico) */}
+                    <div className="flex-1 bg-gray-800 p-4 rounded-lg shadow-lg"> {/* Cambiado w-1/2 a flex-1 */}
                         <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-2xl font-semibold text-blue-400">{teamA.name}</h3>
+                            <h3 className={`text-2xl font-semibold ${isTeamASideLeft ? 'text-blue-400' : 'text-red-400'}`}>{leftTeam.name}</h3>
                             <div className="flex space-x-2">
                                 <button
-                                    onClick={() => handleTeamUndo(teamA.name)}
-                                    disabled={!teamA.lastAction}
+                                    onClick={() => handleTeamUndo(leftTeam.name)}
+                                    disabled={!leftTeam.lastAction}
                                     className={`py-1 px-3 rounded-lg font-normal text-sm transition duration-200 ${
-                                        teamA.lastAction ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                                        leftTeam.lastAction ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'bg-gray-600 text-gray-400 cursor-not-allowed'
                                     }`}
                                 >
                                     {/* Solo icono para deshacer */}
@@ -1342,43 +1539,70 @@ function App() {
                                     onClick={() => {
                                         if (allRosterPlayers.length === 0) {
                                             setAlertMessage("No hay jugadores en tu lista global. Por favor, añade jugadores en la página de 'Gestionar Jugadores' antes de agregarlos a un equipo.");
+                                            navigateToPage('roster'); // Redirigir a la página de gestión de jugadores
                                         } else {
-                                            setShowRosterSelectionModalForTeam(teamA.name);
+                                            setShowRosterSelectionModalForTeam(leftTeam.name);
                                         }
                                     }}
-                                    className="bg-green-600 hover:bg-green-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-xl font-normal shadow-md transition duration-200"
+                                    className="bg-green-600 hover:bg-green-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-lg font-normal shadow-md transition duration-200 flex-shrink-0" /* Changed text-xl to text-lg, added flex-shrink-0 */
                                     title="Añadir Jugador de Plantilla"
                                 >
                                     +
                                 </button>
                             </div>
                         </div>
+                        {/* Jugadores en Cancha */}
+                        <h4 className="text-lg font-semibold text-white mb-2">En Cancha ({leftTeamOnCourt.length}/5)</h4>
+                        <div className="space-y-4 mb-6">
+                            {leftTeamOnCourt.length === 0 ? (
+                                <p className="text-gray-400 text-sm font-normal">No hay jugadores en cancha.</p>
+                            ) : (
+                                leftTeamOnCourt.map(player => (
+                                    <PlayerRow
+                                        key={player.id}
+                                        player={player}
+                                        teamId={leftTeam.name}
+                                        isRunning={isRunning}
+                                        updatePlayerStat={updatePlayerStat}
+                                        removePlayer={removePlayer}
+                                        setShowPlayerStatsModal={setShowPlayerStatsModal}
+                                        onInitiateSubstitution={initiateSubstitution}
+                                    />
+                                ))
+                            )}
+                        </div>
+                        {/* Jugadores en Banca */}
+                        <h4 className="text-lg font-semibold text-white mb-2">En Banca ({leftTeamBench.length})</h4>
                         <div className="space-y-4">
-                            {teamA.players.map(player => (
-                                <PlayerRow
-                                    key={player.id}
-                                    player={player}
-                                    teamId={teamA.name}
-                                    isRunning={isRunning}
-                                    updatePlayerStat={updatePlayerStat}
-                                    removePlayer={removePlayer}
-                                    handlePlayerNameChange={handlePlayerNameChange}
-                                    setShowPlayerStatsModal={setShowPlayerStatsModal}
-                                />
-                            ))}
+                            {leftTeamBench.length === 0 ? (
+                                <p className="text-gray-400 text-sm font-normal">No hay jugadores en banca.</p>
+                            ) : (
+                                leftTeamBench.map(player => (
+                                    <PlayerRow
+                                        key={player.id}
+                                        player={player}
+                                        teamId={leftTeam.name}
+                                        isRunning={isRunning}
+                                        updatePlayerStat={updatePlayerStat}
+                                        removePlayer={removePlayer}
+                                        setShowPlayerStatsModal={setShowPlayerStatsModal}
+                                        onInitiateSubstitution={initiateSubstitution}
+                                    />
+                                ))
+                            )}
                         </div>
                     </div>
 
-                    {/* Equipo Visitante */}
-                    <div className="w-1/2 bg-gray-800 p-4 rounded-lg shadow-lg">
+                    {/* Equipo Derecho (dinámico) */}
+                    <div className="flex-1 bg-gray-800 p-4 rounded-lg shadow-lg"> {/* Cambiado w-1/2 a flex-1 */}
                         <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-2xl font-semibold text-red-400">{teamB.name}</h3>
+                            <h3 className={`text-2xl font-semibold ${isTeamASideLeft ? 'text-red-400' : 'text-blue-400'}`}>{rightTeam.name}</h3>
                             <div className="flex space-x-2">
                                 <button
-                                    onClick={() => handleTeamUndo(teamB.name)}
-                                    disabled={!teamB.lastAction}
+                                    onClick={() => handleTeamUndo(rightTeam.name)}
+                                    disabled={!rightTeam.lastAction}
                                     className={`py-1 px-3 rounded-lg font-normal text-sm transition duration-200 ${
-                                        teamB.lastAction ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                                        rightTeam.lastAction ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'bg-gray-600 text-gray-400 cursor-not-allowed'
                                     }`}
                                 >
                                     {/* Solo icono para deshacer */}
@@ -1388,30 +1612,57 @@ function App() {
                                     onClick={() => {
                                         if (allRosterPlayers.length === 0) {
                                             setAlertMessage("No hay jugadores en tu lista global. Por favor, añade jugadores en la página de 'Gestionar Jugadores' antes de agregarlos a un equipo.");
+                                            navigateToPage('roster'); // Redirigir a la página de gestión de jugadores
                                         } else {
-                                            setShowRosterSelectionModalForTeam(teamB.name);
+                                            setShowRosterSelectionModalForTeam(rightTeam.name);
                                         }
                                     }}
-                                    className="bg-green-600 hover:bg-green-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-xl font-normal shadow-md transition duration-200"
+                                    className="bg-green-600 hover:bg-green-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-lg font-normal shadow-md transition duration-200 flex-shrink-0" /* Changed text-xl to text-lg, added flex-shrink-0 */
                                     title="Añadir Jugador de Plantilla"
                                 >
                                     +
                                 </button>
                             </div>
                         </div>
+                        {/* Jugadores en Cancha */}
+                        <h4 className="text-lg font-semibold text-white mb-2">En Cancha ({rightTeamOnCourt.length}/5)</h4>
+                        <div className="space-y-4 mb-6">
+                            {rightTeamOnCourt.length === 0 ? (
+                                <p className="text-gray-400 text-sm font-normal">No hay jugadores en cancha.</p>
+                            ) : (
+                                rightTeamOnCourt.map(player => (
+                                    <PlayerRow
+                                        key={player.id}
+                                        player={player}
+                                        teamId={rightTeam.name}
+                                        isRunning={isRunning}
+                                        updatePlayerStat={updatePlayerStat}
+                                        removePlayer={removePlayer}
+                                        setShowPlayerStatsModal={setShowPlayerStatsModal}
+                                        onInitiateSubstitution={initiateSubstitution}
+                                    />
+                                ))
+                            )}
+                        </div>
+                        {/* Jugadores en Banca */}
+                        <h4 className="text-lg font-semibold text-white mb-2">En Banca ({rightTeamBench.length})</h4>
                         <div className="space-y-4">
-                            {teamB.players.map(player => (
-                                <PlayerRow
-                                    key={player.id}
-                                    player={player}
-                                    teamId={teamB.name}
-                                    isRunning={isRunning}
-                                    updatePlayerStat={updatePlayerStat}
-                                    removePlayer={removePlayer}
-                                    handlePlayerNameChange={handlePlayerNameChange}
-                                    setShowPlayerStatsModal={setShowPlayerStatsModal}
-                                />
-                            ))}
+                            {rightTeamBench.length === 0 ? (
+                                <p className="text-gray-400 text-sm font-normal">No hay jugadores en banca.</p>
+                            ) : (
+                                rightTeamBench.map(player => (
+                                    <PlayerRow
+                                        key={player.id}
+                                        player={player}
+                                        teamId={rightTeam.name}
+                                        isRunning={isRunning}
+                                        updatePlayerStat={updatePlayerStat}
+                                        removePlayer={removePlayer}
+                                        setShowPlayerStatsModal={setShowPlayerStatsModal}
+                                        onInitiateSubstitution={initiateSubstitution}
+                                    />
+                                ))
+                            )}
                         </div>
                     </div>
                 </div>
@@ -1434,21 +1685,25 @@ function App() {
                 {showRosterSelectionModalForTeam && (
                     <PlayerSelectionModal
                         rosterPlayers={allRosterPlayers}
-                        currentTeamPlayers={showRosterSelectionModalForTeam === teamA.name ? teamA.players : teamB.players}
-                        onSelectPlayer={(player) => addPlayerToTeamFromRoster(showRosterSelectionModalForTeam, player)}
+                        targetTeamPlayers={showRosterSelectionModalForTeam === teamA.name ? teamA.players : teamB.players}
+                        allPlayersInGame={allPlayersCurrentlyInGame} // Pass the combined list here
+                        onAddSelectedPlayers={(selectedPlayers) => addPlayersToTeamFromRoster(showRosterSelectionModalForTeam, selectedPlayers)} // MODIFICADO
                         onClose={() => setShowRosterSelectionModalForTeam(null)}
                     />
                 )}
 
-                {/* NUEVO: Modal para ver y gestionar la plantilla completa */}
-                {showRosterViewModal && (
-                    <RosterViewModal
-                        allPlayers={allRosterPlayers}
-                        addPlayerToGlobalRoster={addPlayerToGlobalRoster}
-                        updateGlobalPlayer={updateGlobalPlayer}
-                        removeGlobalPlayer={removeGlobalPlayer}
-                        setAlertMessage={setAlertMessage}
-                        onClose={() => setShowRosterViewModal(false)}
+                {/* NUEVO: Modal de Sustitución */}
+                {showSubstitutionModal && playerToSubOut && (
+                    <SubstitutionModal
+                        teamId={playerToSubOut.teamId}
+                        playerToSubOutId={playerToSubOut.playerId}
+                        teamA={teamA}
+                        teamB={teamB}
+                        onConfirmSwap={confirmSubstitution}
+                        onClose={() => {
+                            setShowSubstitutionModal(false);
+                            setPlayerToSubOut(null);
+                        }}
                     />
                 )}
             </div>
@@ -1479,10 +1734,8 @@ function App() {
         const handleStatUpdate = (stat, value) => {
             updatePlayerStat(teamId, player.id, stat, value);
 
-            // Solo cerrar si NO estamos en modo de múltiples toques (long press)
-            if (!isMultiTapMode) {
-                onClose();
-            }
+            // MODIFICADO: Ya no se cierra automáticamente aquí.
+            // El modal solo se cerrará con el botón "Cerrar".
         };
 
         // Cálculos para porcentajes de tiro, con manejo de división por cero
@@ -1503,213 +1756,212 @@ function App() {
 
         return (
             // Increased z-index to 60 to be above bottom navigation (z-50)
-            <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[60]">
+            <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[60] p-4"> {/* Added p-4 for padding on small screens */}
                 {/* Ajustado: w-full h-full para ocupar casi toda la pantalla, y max-w-screen-lg para limitar el ancho en pantallas muy grandes */}
                 <div className="bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-screen-lg h-full max-h-[90vh] border border-gray-700 flex flex-col relative">
-                    <div className="flex justify-between items-center mb-6">
-                        <h3 className="text-3xl font-semibold text-white">
-                            {player.name} <span className="text-gray-400 text-xl font-normal">#{player.jersey}</span>
+                    <div className="flex justify-between items-center mb-4 sm:mb-6"> {/* Adjusted mb for smaller screens */}
+                        <h3 className="text-2xl sm:text-3xl font-semibold text-white"> {/* Responsive font size */}
+                            {player.name} <span className="text-gray-400 text-lg sm:text-xl font-normal">#{player.jersey}</span> {/* Responsive font size */}
                         </h3>
                         <button
                             onClick={onClose}
-                            className="text-gray-400 hover:text-white text-4xl leading-none font-normal"
+                            className="text-gray-400 hover:text-white text-3xl sm:text-4xl leading-none font-normal" /* Responsive font size */
                         >
                             &times;
                         </button>
                     </div>
 
                     {/* Contenedor para las estadísticas con scroll horizontal */}
-                    <div className="flex-grow overflow-y-auto pb-16">
-                        {/* Modificado: Grid para las estadísticas, con un min-width para forzar el scroll */}
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                            {/* Fila de Aciertos */}
-                            {/* 2 Puntos - Aciertos */}
-                            <div className="bg-gray-700 p-3 rounded-md flex flex-col items-center justify-center">
-                                <span className="font-normal text-white text-sm text-center mb-2 bg-green-600 px-2 py-1 rounded-md w-full">2 Puntos (Aciertos)</span>
-                                <div className="flex space-x-2 items-center mt-2">
-                                    <button onClick={() => handleStatUpdate('2PM', 1)} className="bg-green-600 hover:bg-green-700 text-white rounded-md px-4 py-2 text-base font-normal">
-                                        +
-                                    </button>
-                                    <span className="bg-gray-600 text-white rounded-md px-3 py-2 text-lg font-normal min-w-[40px] text-center">
-                                        {player.made2pt}
-                                    </span>
-                                    <button onClick={() => handleStatUpdate('2PM', -1)} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-4 py-2 text-base font-normal">
-                                        -
-                                    </button>
-                                </div>
+                    {/* Removed overflow-y-auto from this div. The main modal container will handle overall scroll if needed. */}
+                    {/* Adjusted grid for responsiveness: 2 columns on mobile, 3 on sm, 4 on md */}
+                    <div className="flex-grow pb-16 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
+                        {/* Fila de Aciertos */}
+                        {/* 2 Puntos - Aciertos */}
+                        <div className="bg-gray-700 p-2 sm:p-3 rounded-md flex flex-col items-center justify-center text-center"> {/* Adjusted padding */}
+                            <span className="font-normal text-white text-xs sm:text-sm mb-1 sm:mb-2 bg-green-600 px-1 sm:px-2 py-0.5 sm:py-1 rounded-md w-full">2 Puntos (Aciertos)</span> {/* Adjusted font size and padding */}
+                            <div className="flex space-x-1 sm:space-x-2 items-center mt-1 sm:mt-2"> {/* Adjusted space-x */}
+                                <button onClick={() => handleStatUpdate('2PM', 1)} className="bg-green-600 hover:bg-green-700 text-white rounded-md px-2 sm:px-4 py-1 sm:py-2 text-sm sm:text-base font-normal">
+                                    +
+                                </button>
+                                <span className="bg-gray-600 text-white rounded-md px-2 sm:px-3 py-1 sm:py-2 text-base sm:text-lg font-normal min-w-[30px] sm:min-w-[40px] text-center">
+                                    {player.made2pt}
+                                </span>
+                                <button onClick={() => handleStatUpdate('2PM', -1)} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-2 sm:px-4 py-1 sm:py-2 text-sm sm:text-base font-normal">
+                                    -
+                                </button>
                             </div>
+                        </div>
 
-                            {/* 3 Puntos - Aciertos */}
-                            <div className="bg-gray-700 p-3 rounded-md flex flex-col items-center justify-center">
-                                <span className="font-normal text-white text-sm text-center mb-2 bg-green-600 px-2 py-1 rounded-md w-full">3 Puntos (Aciertos)</span>
-                                <div className="flex space-x-2 items-center mt-2">
-                                    <button onClick={() => handleStatUpdate('3PM', 1)} className="bg-green-600 hover:bg-green-700 text-white rounded-md px-4 py-2 text-base font-normal">
-                                        +
-                                    </button>
-                                    <span className="bg-gray-600 text-white rounded-md px-3 py-2 text-lg font-normal min-w-[40px] text-center">
-                                        {player.made3pt}
-                                    </span>
-                                    <button onClick={() => handleStatUpdate('3PM', -1)} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-4 py-2 text-base font-normal">
-                                        -
-                                    </button>
-                                </div>
+                        {/* 3 Puntos - Aciertos */}
+                        <div className="bg-gray-700 p-2 sm:p-3 rounded-md flex flex-col items-center justify-center text-center">
+                            <span className="font-normal text-white text-xs sm:text-sm mb-1 sm:mb-2 bg-green-600 px-1 sm:px-2 py-0.5 sm:py-1 rounded-md w-full">3 Puntos (Aciertos)</span>
+                            <div className="flex space-x-1 sm:space-x-2 items-center mt-1 sm:mt-2">
+                                <button onClick={() => handleStatUpdate('3PM', 1)} className="bg-green-600 hover:bg-green-700 text-white rounded-md px-2 sm:px-4 py-1 sm:py-2 text-sm sm:text-base font-normal">
+                                    +
+                                </button>
+                                <span className="bg-gray-600 text-white rounded-md px-2 sm:px-3 py-1 sm:py-2 text-base sm:text-lg font-normal min-w-[30px] sm:min-w-[40px] text-center">
+                                    {player.made3pt}
+                                </span>
+                                <button onClick={() => handleStatUpdate('3PM', -1)} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-2 sm:px-4 py-1 sm:py-2 text-sm sm:text-base font-normal">
+                                    -
+                                </button>
                             </div>
+                        </div>
 
-                            {/* Tiros Libres - Aciertos */}
-                            <div className="bg-gray-700 p-3 rounded-md flex flex-col items-center justify-center">
-                                <span className="font-normal text-white text-sm text-center mb-2 bg-green-600 px-2 py-1 rounded-md w-full">T. Libres (Aciertos)</span>
-                                <div className="flex space-x-2 items-center mt-2">
-                                    <button onClick={() => handleStatUpdate('FTM', 1)} className="bg-green-600 hover:bg-green-700 text-white rounded-md px-4 py-2 text-base font-normal">
-                                        +
-                                    </button>
-                                    <span className="bg-gray-600 text-white rounded-md px-3 py-2 text-lg font-normal min-w-[40px] text-center">
-                                        {player.madeFT}
-                                    </span>
-                                    <button onClick={() => handleStatUpdate('FTM', -1)} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-4 py-2 text-base font-normal">
-                                        -
-                                    </button>
-                                </div>
+                        {/* Tiros Libres - Aciertos */}
+                        <div className="bg-gray-700 p-2 sm:p-3 rounded-md flex flex-col items-center justify-center text-center">
+                            <span className="font-normal text-white text-xs sm:text-sm mb-1 sm:mb-2 bg-green-600 px-1 sm:px-2 py-0.5 sm:py-1 rounded-md w-full">T. Libres (Aciertos)</span>
+                            <div className="flex space-x-1 sm:space-x-2 items-center mt-1 sm:mt-2">
+                                <button onClick={() => handleStatUpdate('FTM', 1)} className="bg-green-600 hover:bg-green-700 text-white rounded-md px-2 sm:px-4 py-1 sm:py-2 text-sm sm:text-base font-normal">
+                                    +
+                                </button>
+                                <span className="bg-gray-600 text-white rounded-md px-2 sm:px-3 py-1 sm:py-2 text-base sm:text-lg font-normal min-w-[30px] sm:min-w-[40px] text-center">
+                                    {player.madeFT}
+                                </span>
+                                <button onClick={() => handleStatUpdate('FTM', -1)} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-2 sm:px-4 py-1 sm:py-2 text-sm sm:text-base font-normal">
+                                    -
+                                </button>
                             </div>
+                        </div>
 
-                            {/* Fila de Fallos */}
-                            {/* 2 Puntos - Fallos */}
-                            <div className="bg-gray-700 p-3 rounded-md flex flex-col items-center justify-center">
-                                <span className="font-normal text-white text-sm text-center mb-2 bg-red-600 px-2 py-1 rounded-md w-full">2 Puntos (Fallos)</span>
-                                <div className="flex space-x-2 items-center mt-2">
-                                    <button onClick={() => handleStatUpdate('2PTM', 1)} className="bg-green-600 hover:bg-green-700 text-white rounded-md px-4 py-2 text-base font-normal">
-                                        +
-                                    </button>
-                                    <span className="bg-gray-600 text-white rounded-md px-3 py-2 text-lg font-normal min-w-[40px] text-center">
-                                        {player.missed2pt}
-                                    </span>
-                                    <button onClick={() => handleStatUpdate('2PTM', -1)} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-4 py-2 text-base font-normal">
-                                        -
-                                    </button>
-                                </div>
+                        {/* Fila de Fallos */}
+                        {/* 2 Puntos - Fallos */}
+                        <div className="bg-gray-700 p-2 sm:p-3 rounded-md flex flex-col items-center justify-center text-center">
+                            <span className="font-normal text-white text-xs sm:text-sm mb-1 sm:mb-2 bg-red-600 px-1 sm:px-2 py-0.5 sm:py-1 rounded-md w-full">2 Puntos (Fallos)</span>
+                            <div className="flex space-x-1 sm:space-x-2 items-center mt-1 sm:mt-2">
+                                <button onClick={() => handleStatUpdate('2PTM', 1)} className="bg-green-600 hover:bg-green-700 text-white rounded-md px-2 sm:px-4 py-1 sm:py-2 text-sm sm:text-base font-normal">
+                                    +
+                                </button>
+                                <span className="bg-gray-600 text-white rounded-md px-2 sm:px-3 py-1 sm:py-2 text-base sm:text-lg font-normal min-w-[30px] sm:min-w-[40px] text-center">
+                                    {player.missed2pt}
+                                </span>
+                                <button onClick={() => handleStatUpdate('2PTM', -1)} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-2 sm:px-4 py-1 sm:py-2 text-sm sm:text-base font-normal">
+                                    -
+                                </button>
                             </div>
+                        </div>
 
-                            {/* 3 Puntos - Fallos */}
-                            <div className="bg-gray-700 p-3 rounded-md flex flex-col items-center justify-center">
-                                <span className="font-normal text-white text-sm text-center mb-2 bg-red-600 px-2 py-1 rounded-md w-full">3 Puntos (Fallos)</span>
-                                <div className="flex space-x-2 items-center mt-2">
-                                    <button onClick={() => handleStatUpdate('3PTM', 1)} className="bg-green-600 hover:bg-green-700 text-white rounded-md px-4 py-2 text-base font-normal">
-                                        +
-                                    </button>
-                                    <span className="bg-gray-600 text-white rounded-md px-3 py-2 text-lg font-normal min-w-[40px] text-center">
-                                        {player.missed3pt}
-                                    </span>
-                                    <button onClick={() => handleStatUpdate('3PTM', -1)} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-4 py-2 text-base font-normal">
-                                        -
-                                    </button>
-                                </div>
+                        {/* 3 Puntos - Fallos */}
+                        <div className="bg-gray-700 p-2 sm:p-3 rounded-md flex flex-col items-center justify-center text-center">
+                            <span className="font-normal text-white text-xs sm:text-sm mb-1 sm:mb-2 bg-red-600 px-1 sm:px-2 py-0.5 sm:py-1 rounded-md w-full">3 Puntos (Fallos)</span>
+                            <div className="flex space-x-1 sm:space-x-2 items-center mt-1 sm:mt-2">
+                                <button onClick={() => handleStatUpdate('3PTM', 1)} className="bg-green-600 hover:bg-green-700 text-white rounded-md px-2 sm:px-4 py-1 sm:py-2 text-sm sm:text-base font-normal">
+                                    +
+                                </button>
+                                <span className="bg-gray-600 text-white rounded-md px-2 sm:px-3 py-1 sm:py-2 text-base sm:text-lg font-normal min-w-[30px] sm:min-w-[40px] text-center">
+                                    {player.missed3pt}
+                                </span>
+                                <button onClick={() => handleStatUpdate('3PTM', -1)} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-2 sm:px-4 py-1 sm:py-2 text-sm sm:text-base font-normal">
+                                    -
+                                </button>
                             </div>
+                        </div>
 
-                            {/* Tiros Libres - Fallos */}
-                            <div className="bg-gray-700 p-3 rounded-md flex flex-col items-center justify-center">
-                                <span className="font-normal text-white text-sm text-center mb-2 bg-red-600 px-2 py-1 rounded-md w-full">T. Libres (Fallos)</span>
-                                <div className="flex space-x-2 items-center mt-2">
-                                    <button onClick={() => handleStatUpdate('FTT', 1)} className="bg-green-600 hover:bg-green-700 text-white rounded-md px-4 py-2 text-base font-normal">
-                                        +
-                                    </button>
-                                    <span className="bg-gray-600 text-white rounded-md px-3 py-2 text-lg font-normal min-w-[40px] text-center">
-                                        {player.missedFT}
-                                    </span>
-                                    <button onClick={() => handleStatUpdate('FTT', -1)} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-4 py-2 text-base font-normal">
-                                        -
-                                    </button>
-                                </div>
+                        {/* Tiros Libres - Fallos */}
+                        <div className="bg-gray-700 p-2 sm:p-3 rounded-md flex flex-col items-center justify-center text-center">
+                            <span className="font-normal text-white text-xs sm:text-sm mb-1 sm:mb-2 bg-red-600 px-1 sm:px-2 py-0.5 sm:py-1 rounded-md w-full">T. Libres (Fallos)</span>
+                            <div className="flex space-x-1 sm:space-x-2 items-center mt-1 sm:mt-2">
+                                <button onClick={() => handleStatUpdate('FTT', 1)} className="bg-green-600 hover:bg-green-700 text-white rounded-md px-2 sm:px-4 py-1 sm:py-2 text-sm sm:text-base font-normal">
+                                    +
+                                </button>
+                                <span className="bg-gray-600 text-white rounded-md px-2 sm:px-3 py-1 sm:py-2 text-base sm:text-lg font-normal min-w-[30px] sm:min-w-[40px] text-center">
+                                    {player.missedFT}
+                                </span>
+                                <button onClick={() => handleStatUpdate('FTT', -1)} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-2 sm:px-4 py-1 sm:py-2 text-sm sm:text-base font-normal">
+                                    -
+                                </button>
                             </div>
+                        </div>
 
-                            {/* Otras estadísticas */}
-                            {/* Rebotes */}
-                            <div className="bg-gray-700 p-3 rounded-md flex flex-col items-center justify-center">
-                                <span className="font-normal text-white text-sm text-center mb-2 bg-purple-600 px-2 py-1 rounded-md w-full">Rebotes</span>
-                                <div className="flex space-x-2 items-center mt-2">
-                                    <button onClick={() => handleStatUpdate('REB', 1)} className="bg-green-600 hover:bg-green-700 text-white rounded-md px-4 py-2 text-base font-normal">
-                                        +
-                                    </button>
-                                    <span className="bg-gray-600 text-white rounded-md px-3 py-2 text-lg font-normal min-w-[40px] text-center">
-                                        {player.rebounds}
-                                    </span>
-                                    <button onClick={() => handleStatUpdate('REB', -1)} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-4 py-2 text-base font-normal">
-                                        -
-                                    </button>
-                                </div>
+                        {/* Otras estadísticas */}
+                        {/* Rebotes */}
+                        <div className="bg-gray-700 p-2 sm:p-3 rounded-md flex flex-col items-center justify-center text-center">
+                            <span className="font-normal text-white text-xs sm:text-sm mb-1 sm:mb-2 bg-purple-600 px-1 sm:px-2 py-0.5 sm:py-1 rounded-md w-full">Rebotes</span>
+                            <div className="flex space-x-1 sm:space-x-2 items-center mt-1 sm:mt-2">
+                                <button onClick={() => handleStatUpdate('REB', 1)} className="bg-green-600 hover:bg-green-700 text-white rounded-md px-2 sm:px-4 py-1 sm:py-2 text-sm sm:text-base font-normal">
+                                    +
+                                </button>
+                                <span className="bg-gray-600 text-white rounded-md px-2 sm:px-3 py-1 sm:py-2 text-base sm:text-lg font-normal min-w-[30px] sm:min-w-[40px] text-center">
+                                    {player.rebounds}
+                                </span>
+                                <button onClick={() => handleStatUpdate('REB', -1)} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-2 sm:px-4 py-1 sm:py-2 text-sm sm:text-base font-normal">
+                                    -
+                                </button>
                             </div>
-                            {/* Asistencias */}
-                            <div className="bg-gray-700 p-3 rounded-md flex flex-col items-center justify-center">
-                                <span className="font-normal text-white text-sm text-center mb-2 bg-pink-600 px-2 py-1 rounded-md w-full">Asistencias</span>
-                                <div className="flex space-x-2 items-center mt-2">
-                                    <button onClick={() => handleStatUpdate('AST', 1)} className="bg-green-600 hover:bg-green-700 text-white rounded-md px-4 py-2 text-base font-normal">
-                                        +
-                                    </button>
-                                    <span className="bg-gray-600 text-white rounded-md px-3 py-2 text-lg font-normal min-w-[40px] text-center">
-                                        {player.assists}
-                                    </span>
-                                    <button onClick={() => handleStatUpdate('AST', -1)} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-4 py-2 text-base font-normal">
-                                        -
-                                    </button>
-                                </div>
+                        </div>
+                        {/* Asistencias */}
+                        <div className="bg-gray-700 p-2 sm:p-3 rounded-md flex flex-col items-center justify-center text-center">
+                            <span className="font-normal text-white text-xs sm:text-sm mb-1 sm:mb-2 bg-pink-600 px-1 sm:px-2 py-0.5 sm:py-1 rounded-md w-full">Asistencias</span>
+                            <div className="flex space-x-1 sm:space-x-2 items-center mt-1 sm:mt-2">
+                                <button onClick={() => handleStatUpdate('AST', 1)} className="bg-green-600 hover:bg-green-700 text-white rounded-md px-2 sm:px-4 py-1 sm:py-2 text-sm sm:text-base font-normal">
+                                    +
+                                </button>
+                                <span className="bg-gray-600 text-white rounded-md px-2 sm:px-3 py-1 sm:py-2 text-base sm:text-lg font-normal min-w-[30px] sm:min-w-[40px] text-center">
+                                    {player.assists}
+                                </span>
+                                <button onClick={() => handleStatUpdate('AST', -1)} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-2 sm:px-4 py-1 sm:py-2 text-sm sm:text-base font-normal">
+                                    -
+                                </button>
                             </div>
-                            {/* Robos */}
-                            <div className="bg-gray-700 p-3 rounded-md flex flex-col items-center justify-center">
-                                <span className="font-normal text-white text-sm text-center mb-2 bg-teal-600 px-2 py-1 rounded-md w-full">Robos</span>
-                                <div className="flex space-x-2 items-center mt-2">
-                                    <button onClick={() => handleStatUpdate('STL', 1)} className="bg-green-600 hover:bg-green-700 text-white rounded-md px-4 py-2 text-base font-normal">
-                                        +
-                                    </button>
-                                    <span className="bg-gray-600 text-white rounded-md px-3 py-2 text-lg font-normal min-w-[40px] text-center">
-                                        {player.steals}
-                                    </span>
-                                    <button onClick={() => handleStatUpdate('STL', -1)} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-4 py-2 text-base font-normal">
-                                        -
-                                    </button>
-                                </div>
+                        </div>
+                        {/* Robos */}
+                        <div className="bg-gray-700 p-2 sm:p-3 rounded-md flex flex-col items-center justify-center text-center">
+                            <span className="font-normal text-white text-xs sm:text-sm mb-1 sm:mb-2 bg-teal-600 px-1 sm:px-2 py-0.5 sm:py-1 rounded-md w-full">Robos</span>
+                            <div className="flex space-x-1 sm:space-x-2 items-center mt-1 sm:mt-2">
+                                <button onClick={() => handleStatUpdate('STL', 1)} className="bg-green-600 hover:bg-green-700 text-white rounded-md px-2 sm:px-4 py-1 sm:py-2 text-sm sm:text-base font-normal">
+                                    +
+                                </button>
+                                <span className="bg-gray-600 text-white rounded-md px-2 sm:px-3 py-1 sm:py-2 text-base sm:text-lg font-normal min-w-[30px] sm:min-w-[40px] text-center">
+                                    {player.steals}
+                                </span>
+                                <button onClick={() => handleStatUpdate('STL', -1)} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-2 sm:px-4 py-1 sm:py-2 text-sm sm:text-base font-normal">
+                                    -
+                                </button>
                             </div>
-                            {/* Bloqueos */}
-                            <div className="bg-gray-700 p-3 rounded-md flex flex-col items-center justify-center">
-                                <span className="font-normal text-white text-sm text-center mb-2 bg-indigo-600 px-2 py-1 rounded-md w-full">Bloqueos</span>
-                                <div className="flex space-x-2 items-center mt-2">
-                                    <button onClick={() => handleStatUpdate('BLK', 1)} className="bg-green-600 hover:bg-green-700 text-white rounded-md px-4 py-2 text-base font-normal">
-                                        +
-                                    </button>
-                                    <span className="bg-gray-600 text-white rounded-md px-3 py-2 text-lg font-normal min-w-[40px] text-center">
-                                        {player.blocks}
-                                    </span>
-                                    <button onClick={() => handleStatUpdate('BLK', -1)} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-4 py-2 text-base font-normal">
-                                        -
-                                    </button>
-                                </div>
+                        </div>
+                        {/* Bloqueos */}
+                        <div className="bg-gray-700 p-2 sm:p-3 rounded-md flex flex-col items-center justify-center text-center">
+                            <span className="font-normal text-white text-xs sm:text-sm mb-1 sm:mb-2 bg-indigo-600 px-1 sm:px-2 py-0.5 sm:py-1 rounded-md w-full">Bloqueos</span>
+                            <div className="flex space-x-1 sm:space-x-2 items-center mt-1 sm:mt-2">
+                                <button onClick={() => handleStatUpdate('BLK', 1)} className="bg-green-600 hover:bg-green-700 text-white rounded-md px-2 sm:px-4 py-1 sm:py-2 text-sm sm:text-base font-normal">
+                                    +
+                                </button>
+                                <span className="bg-gray-600 text-white rounded-md px-2 sm:px-3 py-1 sm:py-2 text-base sm:text-lg font-normal min-w-[30px] sm:min-w-[40px] text-center">
+                                    {player.blocks}
+                                </span>
+                                <button onClick={() => handleStatUpdate('BLK', -1)} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-2 sm:px-4 py-1 sm:py-2 text-sm sm:text-base font-normal">
+                                    -
+                                </button>
                             </div>
-                            {/* Pérdidas */}
-                            <div className="bg-gray-700 p-3 rounded-md flex flex-col items-center justify-center">
-                                <span className="font-normal text-white text-sm text-center mb-2 bg-orange-600 px-2 py-1 rounded-md w-full">Pérdidas</span>
-                                <div className="flex space-x-2 items-center mt-2">
-                                    <button onClick={() => handleStatUpdate('TOV', 1)} className="bg-green-600 hover:bg-green-700 text-white rounded-md px-4 py-2 text-base font-normal">
-                                        +
-                                    </button>
-                                    <span className="bg-gray-600 text-white rounded-md px-3 py-2 text-lg font-normal min-w-[40px] text-center">
-                                        {player.turnovers}
-                                    </span>
-                                    <button onClick={() => handleStatUpdate('TOV', -1)} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-4 py-2 text-base font-normal">
-                                        -
-                                    </button>
-                                </div>
+                        </div>
+                        {/* Pérdidas */}
+                        <div className="bg-gray-700 p-2 sm:p-3 rounded-md flex flex-col items-center justify-center text-center">
+                            <span className="font-normal text-white text-xs sm:text-sm mb-1 sm:mb-2 bg-orange-600 px-1 sm:px-2 py-0.5 sm:py-1 rounded-md w-full">Pérdidas</span>
+                            <div className="flex space-x-1 sm:space-x-2 items-center mt-1 sm:mt-2">
+                                <button onClick={() => handleStatUpdate('TOV', 1)} className="bg-green-600 hover:bg-green-700 text-white rounded-md px-2 sm:px-4 py-1 sm:py-2 text-sm sm:text-base font-normal">
+                                    +
+                                </button>
+                                <span className="bg-gray-600 text-white rounded-md px-2 sm:px-3 py-1 sm:py-2 text-base sm:text-lg font-normal min-w-[30px] sm:min-w-[40px] text-center">
+                                    {player.turnovers}
+                                </span>
+                                <button onClick={() => handleStatUpdate('TOV', -1)} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-2 sm:px-4 py-1 sm:py-2 text-sm sm:text-base font-normal">
+                                    -
+                                </button>
                             </div>
-                            {/* Faltas */}
-                            <div className="bg-gray-700 p-3 rounded-md flex flex-col items-center justify-center">
-                                <span className="font-normal text-white text-sm text-center mb-2 bg-red-600 px-2 py-1 rounded-md w-full">Faltas</span>
-                                <div className="flex space-x-2 items-center mt-2">
-                                    <button onClick={() => handleStatUpdate('FLT', 1)} className="bg-green-600 hover:bg-green-700 text-white rounded-md px-4 py-2 text-base font-normal">
-                                        +
-                                    </button>
-                                    <span className="bg-gray-600 text-white rounded-md px-3 py-2 text-lg font-normal min-w-[40px] text-center">
-                                        {player.fouls}
-                                    </span>
-                                    <button onClick={() => handleStatUpdate('FLT', -1)} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-4 py-2 text-base font-normal">
-                                        -
-                                    </button>
-                                </div>
+                        </div>
+                        {/* Faltas */}
+                        <div className="bg-gray-700 p-2 sm:p-3 rounded-md flex flex-col items-center justify-center text-center">
+                            <span className="font-normal text-white text-xs sm:text-sm mb-1 sm:mb-2 bg-red-600 px-1 sm:px-2 py-0.5 sm:py-1 rounded-md w-full">Faltas</span>
+                            <div className="flex space-x-1 sm:space-x-2 items-center mt-1 sm:mt-2">
+                                <button onClick={() => handleStatUpdate('FLT', 1)} className="bg-green-600 hover:bg-green-700 text-white rounded-md px-2 sm:px-4 py-1 sm:py-2 text-sm sm:text-base font-normal">
+                                    +
+                                </button>
+                                <span className="bg-gray-600 text-white rounded-md px-2 sm:px-3 py-1 sm:py-2 text-base sm:text-lg font-normal min-w-[30px] sm:min-w-[40px] text-center">
+                                    {player.fouls}
+                                </span>
+                                <button onClick={() => handleStatUpdate('FLT', -1)} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-2 sm:px-4 py-1 sm:py-2 text-sm sm:text-base font-normal">
+                                    -
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -1727,17 +1979,46 @@ function App() {
     };
 
     // Componente del modal de selección de jugador de la lista global
-    const PlayerSelectionModal = useCallback(({ rosterPlayers, currentTeamPlayers, onSelectPlayer, onClose }) => {
-        const availablePlayers = rosterPlayers.filter(rosterP =>
-            !currentTeamPlayers.some(teamP => teamP.id === rosterP.id) // Comparar por ID, no por jersey
-        );
+    const PlayerSelectionModal = useCallback(({ rosterPlayers, targetTeamPlayers, allPlayersInGame, onAddSelectedPlayers, onClose }) => {
+        const [selectedPlayers, setSelectedPlayers] = useState([]);
+
+        // This effect ensures that if the modal is opened for a team, and some players are already in the *other* team,
+        // those players are not pre-selected or selectable.
+        // It also handles cases where a player might be added to the *other* team while this modal is open.
+        useEffect(() => {
+            // Filter out any players from previous selections that are now in allPlayersInGame
+            // This ensures that if a player was selected for Team A, and then Team B's modal is opened,
+            // that player isn't still "selected" in the modal's internal state.
+            setSelectedPlayers(prev =>
+                prev.filter(p => !allPlayersInGame.some(gameP => gameP.id === p.id))
+            );
+        }, [allPlayersInGame]); // Dependency on allPlayersInGame ensures re-evaluation when game roster changes
+
+        const handleCheckboxChange = (player) => {
+            // A player is disabled if they are already in *any* team in the game.
+            const isAlreadyInAnyTeam = allPlayersInGame.some(gameP => gameP.id === player.id);
+
+            if (isAlreadyInAnyTeam) {
+                return; // Cannot change selection for players already in a team
+            }
+
+            setSelectedPlayers(prev =>
+                prev.some(p => p.id === player.id)
+                    ? prev.filter(p => p.id !== player.id)
+                    : [...prev, player]
+            );
+        };
+
+        const handleAddButtonClick = () => {
+            onAddSelectedPlayers(selectedPlayers);
+            onClose();
+        };
 
         return (
-            // Increased z-index to 60 to be above bottom navigation (z-50)
             <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[60] p-4">
                 <div className="bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-md border border-gray-700 max-h-[80vh] overflow-y-auto">
                     <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-2xl font-semibold text-white">Seleccionar Jugador</h3>
+                        <h3 className="text-2xl font-semibold text-white">Seleccionar Jugadores</h3>
                         <button
                             onClick={onClose}
                             className="text-gray-400 hover:text-white text-3xl leading-none font-normal"
@@ -1746,25 +2027,164 @@ function App() {
                         </button>
                     </div>
 
-                    {availablePlayers.length === 0 ? (
-                        <p className="text-gray-400 font-normal">No hay jugadores disponibles en la lista para añadir a este equipo. Asegúrate de que no estén ya en el equipo o añade nuevos a la lista.</p>
+                    {rosterPlayers.length === 0 ? ( // Check global roster length
+                        <p className="text-gray-400 font-normal">No hay jugadores en la plantilla global. Por favor, añade jugadores en la página de 'Gestionar Jugadores'.</p>
                     ) : (
                         <div className="space-y-3">
-                            {availablePlayers.map(player => (
-                                <button
-                                    key={player.id}
-                                    onClick={() => onSelectPlayer(player)}
-                                    className="w-full bg-gray-700 hover:bg-gray-600 text-white p-3 rounded-md text-left transition duration-200 font-normal"
-                                >
-                                    #{player.jersey} - {player.name}
-                                </button>
-                            ))}
+                            {rosterPlayers.map(player => {
+                                const isAlreadyInAnyTeam = allPlayersInGame.some(gameP => gameP.id === player.id);
+                                const isSelectedInThisModal = selectedPlayers.some(sP => sP.id === player.id);
+
+                                return (
+                                    <label
+                                        key={player.id}
+                                        className={`w-full p-3 rounded-md flex items-center justify-between transition duration-200 font-normal
+                                            ${isAlreadyInAnyTeam ? 'bg-gray-700 text-gray-400 opacity-50 cursor-not-allowed' : 'bg-gray-700 hover:bg-gray-600 text-white cursor-pointer'}`}
+                                    >
+                                        <span>#{player.jersey} - {player.name}</span>
+                                        <input
+                                            type="checkbox"
+                                            // If the player is already in ANY team, it should be checked and disabled.
+                                            // Otherwise, it's checked if it's in the current modal's selection.
+                                            checked={isAlreadyInAnyTeam || isSelectedInThisModal}
+                                            onChange={() => handleCheckboxChange(player)}
+                                            disabled={isAlreadyInAnyTeam}
+                                            className="form-checkbox h-5 w-5 text-green-600 rounded"
+                                        />
+                                    </label>
+                                );
+                            })}
                         </div>
                     )}
+                    <button
+                        onClick={handleAddButtonClick}
+                        disabled={selectedPlayers.length === 0}
+                        className={`mt-6 w-full py-3 rounded-lg font-normal text-lg shadow-lg transition duration-200 ${
+                            selectedPlayers.length > 0 ? 'bg-green-600 hover:bg-green-700 text-white' : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                        }`}
+                    >
+                        Añadir {selectedPlayers.length} Jugador(es)
+                    </button>
                 </div>
             </div>
         );
     }, []);
+
+    // NUEVO: Componente para el modal de sustitución
+    const SubstitutionModal = useCallback(({ teamId, playerToSubOutId, teamA, teamB, onConfirmSwap, onClose }) => {
+        const currentTeam = teamId === teamA.name ? teamA : teamB;
+        const playerToSubOut = currentTeam.players.find(p => p.id === playerToSubOutId);
+
+        const onCourtPlayers = currentTeam.players.filter(p => p.isOnCourt && p.id !== playerToSubOutId);
+        const benchPlayers = currentTeam.players.filter(p => !p.isOnCourt && p.id !== playerToSubOutId);
+
+        const [selectedPlayerToSubIn, setSelectedPlayerToSubIn] = useState(null);
+
+        if (!playerToSubOut) {
+            console.error("Jugador a sustituir no encontrado.");
+            onClose();
+            return null;
+        }
+
+        const handleConfirm = () => {
+            if (selectedPlayerToSubIn) {
+                onConfirmSwap(teamId, playerToSubOut.id, selectedPlayerToSubIn.id);
+            } else {
+                setAlertMessage("Por favor, selecciona un jugador para sustituir.");
+            }
+        };
+
+        const isSubbingOutFromCourt = playerToSubOut.isOnCourt;
+
+        return (
+            <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[60] p-4">
+                <div className="bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-md border border-gray-700 max-h-[80vh] overflow-y-auto">
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-2xl font-semibold text-white">Realizar Sustitución</h3>
+                        <button
+                            onClick={onClose}
+                            className="text-gray-400 hover:text-white text-3xl leading-none font-normal"
+                        >
+                            &times;
+                        </button>
+                    </div>
+
+                    <p className="text-gray-300 mb-4 font-normal">
+                        Sustituyendo a: <span className="font-semibold text-white">#{playerToSubOut.jersey} {playerToSubOut.name}</span> (actualmente {isSubbingOutFromCourt ? 'en cancha' : 'en banca'})
+                    </p>
+
+                    <h4 className="text-xl font-semibold text-white mb-3">Seleccionar Jugador para Intercambiar:</h4>
+
+                    {isSubbingOutFromCourt ? ( // Si el que sale está en cancha, listamos los de la banca
+                        benchPlayers.length === 0 ? (
+                            <p className="text-gray-400 font-normal">No hay jugadores en la banca para sustituir.</p>
+                        ) : (
+                            <div className="space-y-3">
+                                {benchPlayers.map(player => (
+                                    <button
+                                        key={player.id}
+                                        onClick={() => setSelectedPlayerToSubIn(player)}
+                                        className={`w-full p-3 rounded-md text-left transition duration-200 font-normal flex items-center justify-between ${
+                                            selectedPlayerToSubIn?.id === player.id ? 'bg-blue-600 text-white' : 'bg-gray-700 hover:bg-gray-600 text-white'
+                                        }`}
+                                    >
+                                        <span>#{player.jersey} - {player.name}</span>
+                                        {selectedPlayerToSubIn?.id === player.id && (
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                            </svg>
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
+                        )
+                    ) : ( // Si el que sale está en banca, listamos los de la cancha
+                        onCourtPlayers.length === 0 ? (
+                            <p className="text-gray-400 font-normal">No hay jugadores en cancha para sustituir.</p>
+                        ) : (
+                            <div className="space-y-3">
+                                {onCourtPlayers.map(player => (
+                                    <button
+                                        key={player.id}
+                                        onClick={() => setSelectedPlayerToSubIn(player)}
+                                        className={`w-full p-3 rounded-md text-left transition duration-200 font-normal flex items-center justify-between ${
+                                            selectedPlayerToSubIn?.id === player.id ? 'bg-blue-600 text-white' : 'bg-gray-700 hover:bg-gray-600 text-white'
+                                        }`}
+                                    >
+                                        <span>#{player.jersey} - {player.name}</span>
+                                        {selectedPlayerToSubIn?.id === player.id && (
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                            </svg>
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
+                        )
+                    )}
+
+                    <div className="flex justify-end space-x-4 mt-6">
+                        <button
+                            onClick={onClose}
+                            className="bg-gray-600 hover:bg-gray-700 text-white font-normal py-2 px-4 rounded-lg transition duration-200"
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            onClick={handleConfirm}
+                            disabled={!selectedPlayerToSubIn}
+                            className={`py-2 px-4 rounded-lg font-normal transition duration-200 ${
+                                selectedPlayerToSubIn ? 'bg-green-600 hover:bg-green-700 text-white' : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                            }`}
+                        >
+                            Confirmar Sustitución
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }, [setAlertMessage]);
+
 
     // NUEVO: Componente para ver y gestionar la plantilla completa (editable)
     const RosterViewModal = ({ allPlayers, addPlayerToGlobalRoster, updateGlobalPlayer, removeGlobalPlayer, setAlertMessage, onClose }) => {
@@ -1922,7 +2342,7 @@ function App() {
                                             <input
                                                 type="text"
                                                 value={editPlayerName}
-                                                onChange={(e) => setNewPlayerName(e.target.value)}
+                                                onChange={(e) => setEditPlayerName(e.target.value)}
                                                 className="flex-grow bg-gray-600 text-white p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-normal"
                                             />
                                             <input
@@ -2321,45 +2741,52 @@ function App() {
 
     // Renderizado condicional de páginas
     return (
-        <div className="bg-gradient-to-br from-gray-900 via-black to-red-900 min-h-screen flex flex-col">
+        <div className="bg-gradient-to-br from-gray-900 via-black to-red-900 min-h-screen flex flex-col overflow-x-hidden"> {/* Added overflow-x-hidden here */}
             {/* Main content area, takes available space */}
             <div className="flex-grow">
                 {page === 'home' && <HomePage />}
                 {page === 'setupGame' && <GameSetupPage />}
                 {page === 'game' &&
                     <GamePage
-                        timer={timer} // Pasa el estado del timer
-                        setTimer={setTimer} // Pasa la función para actualizar el timer
-                        isRunning={isRunning} // Pasa el estado de isRunning
-                        setIsRunning={setIsRunning} // Pasa la función para actualizar isRunning
-                        timeUpMessage={timeUpMessage} // Pasa el mensaje de tiempo finalizado
-                        setTimeUpMessage={setTimeUpMessage} // Pasa la función para actualizar el mensaje
-                        localResetGame={localResetGame} // Pasa la función de reinicio
-                        initialGameTime={initialGameTime} // Se sigue pasando para el reset
+                        timer={timer}
+                        setTimer={setTimer}
+                        isRunning={isRunning}
+                        setIsRunning={setIsRunning}
+                        timeUpMessage={timeUpMessage}
+                        setTimeUpMessage={setTimeUpMessage}
+                        localResetGame={localResetGame}
+                        initialGameTime={initialGameTime}
                         teamA={teamA} setTeamA={setTeamA}
                         teamB={teamB} setTeamB={setTeamB}
                         updatePlayerStat={updatePlayerStat}
                         handleTeamUndo={handleTeamUndo}
-                        onEndGame={handleEndGame} // Pasamos la función de App para finalizar
+                        onEndGame={handleEndGame}
                         setShowRosterSelectionModalForTeam={setShowRosterSelectionModalForTeam}
                         setShowPlayerStatsModal={setShowPlayerStatsModal}
-                        navigateToPage={navigateToPage} // Usar navigateToPage en lugar de setPage
+                        navigateToPage={navigateToPage}
                         setAlertMessage={setAlertMessage}
-                        // rosterPlayers={rosterPlayers} <-- REMOVED, now using allRosterPlayers implicitly
-                        addPlayerToTeamFromRoster={addPlayerToTeamFromRoster}
+                        addPlayersToTeamFromRoster={addPlayersToTeamFromRoster}
                         removePlayer={removePlayer}
-                        handlePlayerNameChange={handlePlayerNameChange}
-                        currentQuarter={currentQuarter} // Pasa el cuarto actual
-                        setCurrentQuarter={setCurrentQuarter} // Pasa la función para actualizar el cuarto
-                        totalQuarters={totalQuarters} // Pasa el total de cuartos
-                        allRosterPlayers={allRosterPlayers} // Pasa la lista de todos los jugadores
-                        addPlayerToGlobalRoster={addPlayerToGlobalRoster} // PASAMOS LAS FUNCIONES DE GESTIÓN
-                        updateGlobalPlayer={updateGlobalPlayer} // PASAMOS LAS FUNCIONES DE GESTIÓN
-                        removeGlobalPlayer={removeGlobalPlayer} // PASAMOS LAS FUNCIONES DE GESTIÓN
-                        overtimeDuration={overtimeDuration} // PASAMOS LA DURACIÓN DEL TIEMPO EXTRA
-                        currentOvertimePeriod={currentOvertimePeriod} // PASAMOS EL PERÍODO ACTUAL DE TIEMPO EXTRA
-                        setCurrentOvertimePeriod={setCurrentOvertimePeriod} // PASAMOS LA FUNCIÓN PARA ACTUALIZAR EL PERÍODO DE TIEMPO EXTRA
-                        foulsBeforeBonus={foulsBeforeBonus} // PASAMOS LAS FALTAS ANTES DE BONUS
+                        currentQuarter={currentQuarter}
+                        setCurrentQuarter={setCurrentQuarter}
+                        totalQuarters={totalQuarters}
+                        allRosterPlayers={allRosterPlayers}
+                        addPlayerToGlobalRoster={addPlayerToGlobalRoster}
+                        updateGlobalPlayer={updateGlobalPlayer}
+                        removeGlobalPlayer={removeGlobalPlayer}
+                        overtimeDuration={overtimeDuration}
+                        currentOvertimePeriod={currentOvertimePeriod}
+                        setCurrentOvertimePeriod={setCurrentOvertimePeriod}
+                        foulsBeforeBonus={foulsBeforeBonus}
+                        initiateSubstitution={initiateSubstitution}
+                        confirmSubstitution={confirmSubstitution}
+                        playerToSubOut={playerToSubOut}
+                        showSubstitutionModal={showSubstitutionModal}
+                        shouldOpenInitialRosterSelection={shouldOpenInitialRosterSelection}
+                        setShouldOpenInitialRosterSelection={setShouldOpenInitialRosterSelection}
+                        isTeamASideLeft={isTeamASideLeft}
+                        handleSwapTeamsDisplay={handleSwapTeamsDisplay}
+                        allPlayersCurrentlyInGame={allPlayersCurrentlyInGame} // Pass the combined list here
                     />
                 }
                 {page === 'history' && <HistoryPage />}
